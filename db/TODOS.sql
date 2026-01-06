@@ -12,52 +12,53 @@ CREATE TABLE todos (
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 CREATE TABLE zustaendigerArzt (
-    Arzt-ID INT AUTO_INCREMENT PRIMARY KEY,
-    Vorname VARCHAR(250) NOT NULL
-    Nachname VARCHAR(250) NOT NULL,
-    Spital VARCHAR(250),
-    Telefonnummer INT(10)
+    arztid INT AUTO_INCREMENT PRIMARY KEY,
+    vorname VARCHAR(250) NOT NULL
+    nachname VARCHAR(250) NOT NULL,
+    spital VARCHAR(250),
+    telefonnummer INT(10)
 );
 
-CREATE TABLE PatientEmpfänger (
-    Patienten-ID INT AUTO_INCREMENT PRIMARY KEY,
-    Telefonnummer INT(10) NOT NULL UNIQUE,
-    Spital VARCHAR(250) NOT NULL,
-    Vorname VARCHAR(250) NOT NULL,
-    Nachname VARCHAR(250) NOT NULL,
-    Gewicht(kg) FLOAT(4) NOT NULL,
-    Koerpergroesse(m) FLOAT(4) NOT NULL,
-    Blutgruppe VARCHAR(4) NOT NULL,
-    Alterskategorie INT(2) NOT NUll,
-    Alter INT(3) NOT NULL
-    FOREIGN KEY (Arzt-ID) REFERENCES zuständiger Arzt(Arzt-ID)
+CREATE TABLE PatientEmpfanger (
+    patientenid INT AUTO_INCREMENT PRIMARY KEY,
+    telefonnummer INT(10) NOT NULL UNIQUE,
+    spital VARCHAR(250) NOT NULL,
+    vorname VARCHAR(250) NOT NULL,
+    nachname VARCHAR(250) NOT NULL,
+    gewicht FLOAT(4) NOT NULL,
+    groesse FLOAT(4) NOT NULL,
+    blutgruppe VARCHAR(4) NOT NULL,
+    alterskategorie INT(2) NOT NUll,
+    alterr INT(3) NOT NULL
+    FOREIGN KEY (arztid) REFERENCES zustaendigerArzt(arztid)
 );
 
 CREATE TABLE krankesOrgan (
-    FOREIGN KEY (Patienten-ID) REFERENCES Patient/Empfänger(Patienten-ID),
-    ORGAN VARCHAR(30) NOT NULL,
-    Dringlichkeit INT(2) NOT NULL
+    FOREIGN KEY (patientenid) REFERENCES PatientEmpfanger(patientenid),
+    organ VARCHAR(30) NOT NULL,
+    dringlichkeit INT(2) NOT NULL
 );
 
 CREATE TABLE Spenderorgane (
-    Organ VARCHAR (30) NOT NULL,
-    FOREIGN KEY (Verstorbenen-ID) REFERENCES Verstorbener/Hirntoter (Verstorbenen-ID)
+    organ VARCHAR (30) NOT NULL,
+    FOREIGN KEY (verstorbenenid) REFERENCES VerstorbenerHirntoter (verstorbenenid)
 );
 
 CREATE TABLE VerstorbenerHirntoter (
-    Verstorbenen-ID INT AUTO-INCREMENT PRIMARY KEY,
-    Telefonnummer eines Angehörigen INT(10),
-    Spital VARCHAR (250),
-    Vorname VARCHAR(250),
-    Nachname VARCHAR(250),
-    Gewicht(kg) FLOAT(4) NOT NULL,
-    Körpergrösse(m) FLOAT(4) NOT NULL,
-    Blutgruppe VARCHAR(4) NOT NULL,
-    Alterskategorie INT(2) NOT NUll
+    verstorbenenid INT AUTO-INCREMENT PRIMARY KEY,
+    telefonnummer eines Angehörigen INT(10),
+    spital VARCHAR (250),
+    vorname VARCHAR(250),
+    nachname VARCHAR(250),
+    gewicht FLOAT(4) NOT NULL,
+    groesse FLOAT(4) NOT NULL,
+    blutgruppe VARCHAR(4) NOT NULL,
+    alterskategorie INT(2) NOT NUll
 );
 
-INSERT INTO zustaendigerArzt(Vorname,Nachname,Spital,Telefonnummer) VALUES
-('Joseph', 'Müller',' Uniklinik Zürich','0791234567'),
-('Anna','Schneider',' Uniklinik Luzern','0791234568');
+INSERT INTO zustaendigerArzt(vorname,nachname,spital,telefonnummer) VALUES
+('Joseph', 'Müller',' Uniklinik Zürich',0791234567),
+('Anna','Schneider',' Uniklinik Luzern',0791234568);
 
-INSERT INTO PatientEmpfänger (Telefonnummer,Spital,Vorname,Nachname,Gewicht(kg),Koerpergroesse)
+INSERT INTO PatientEmpfanger (telefonnummer,spital,vorname,nachname,gewicht,groesse) VALUES
+(0791234569', 'Triemlispital', 'Thomas', 'Schneider',70
