@@ -65,8 +65,3 @@ INSERT INTO PatientEmpfanger (telefonnummer,spital,vorname,nachname,gewicht,groe
 
     INSERT INTO PatientEmpfanger (telefonnummer,spital,vorname,nachname,gewicht,groesse, blutgruppe,alterskategorie,alter.) VALUES
 (0791234569, 'Triemlispital', 'Thomas', 'Schneider',70.0,1.87, AB, 4,30),
-(0796502552, 'Seespital Luzern', 'Karl', 
-INSERT INTO PatientEmpfanger (telefonnummer,spital,vorname,nachname,gewicht,groesse, blutgruppe) VALUES
-(0791234569, 'Triemlispital', 'Thomas', 'Schneider',70.0,1.87),
-(0796502552, 'Seespital Luzern', Karl,
-
