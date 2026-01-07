@@ -29,7 +29,7 @@ CREATE TABLE PatientEmpfanger (
     groesse FLOAT(4) NOT NULL,
     blutgruppe VARCHAR(4) NOT NULL,
     alterskategorie INT(2) NOT NUll,
-    alterr INT(3) NOT NULL
+    alter. INT(3) NOT NULL
     FOREIGN KEY (arztid) REFERENCES zustaendigerArzt(arztid)
 );
 
@@ -46,7 +46,7 @@ CREATE TABLE Spenderorgane (
 
 CREATE TABLE VerstorbenerHirntoter (
     verstorbenenid INT AUTO-INCREMENT PRIMARY KEY,
-    telefonnummer eines Angehörigen INT(10),
+    telefonnummerangehorige INT(10),
     spital VARCHAR (250),
     vorname VARCHAR(250),
     nachname VARCHAR(250),
@@ -61,4 +61,12 @@ INSERT INTO zustaendigerArzt(vorname,nachname,spital,telefonnummer) VALUES
 ('Anna','Schneider',' Uniklinik Luzern',0791234568);
 
 INSERT INTO PatientEmpfanger (telefonnummer,spital,vorname,nachname,gewicht,groesse) VALUES
-(0791234569', 'Triemlispital', 'Thomas', 'Schneider',70
+(0791234569', 'Triemlispital', 'Thomas', 'Schneider',70.0, 1.78
+
+    INSERT INTO PatientEmpfanger (telefonnummer,spital,vorname,nachname,gewicht,groesse, blutgruppe,alterskategorie,alter.) VALUES
+(0791234569, 'Triemlispital', 'Thomas', 'Schneider',70.0,1.87, blutgruppe.),
+(0796502552, 'Seespital Luzern', Karl,
+INSERT INTO PatientEmpfanger (telefonnummer,spital,vorname,nachname,gewicht,groesse, blutgruppe) VALUES
+(0791234569, 'Triemlispital', 'Thomas', 'Schneider',70.0,1.87),
+(0796502552, 'Seespital Luzern', Karl,
+
