@@ -132,3 +132,14 @@ def complete():
 
 if __name__ == "__main__":
     app.run()
+
+@app.route("/users",methods=["GET"])
+@login_required
+def users():
+    pass
+
+@app.route("/users",methods=["GET"])
+@login_required
+def users():
+    users = db_read("SELECT username FROM users ORDER BY username",())
+    return render_template("users.html",users=users)
