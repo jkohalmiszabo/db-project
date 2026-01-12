@@ -131,15 +131,12 @@ def complete():
     return redirect(url_for("index"))
 
 if __name__ == "__main__":
+    @app.route("/users", methods=["GET"])
+@login_required
+def users():
+    users_list = db_read("SELECT username FROM users ORDER BY username", ())
+    return render_template("users.html", users=users_list)
+
+# Diese zwei Zeilen MÜSSEN ganz am Ende stehen
+if __name__ == "__main__":
     app.run()
-
-@app.route("/users",methods=["GET"])
-@login_required
-def users():
-    pass
-
-@app.route("/users",methods=["GET"])
-@login_required
-def users():
-    users = db_read("SELECT username FROM users ORDER BY username",())
-    return render_template("users.html",users=users)
