@@ -60,8 +60,8 @@ INSERT INTO zustaendigerArzt(vorname,nachname,spital,telefonnummer) VALUES
 ('Joseph', 'Müller',' Uniklinik Zürich',0791234567),
 ('Anna','Schneider',' Uniklinik Luzern',0791234568);
 
-INSERT INTO PatientEmpfanger (telefonnummer,spital,vorname,nachname,gewicht,groesse) VALUES
-(0791234569', 'Triemlispital', 'Thomas', 'Schneider',70.0, 1.78
+INSERT INTO PatientEmpfanger (telefonnummer,spital,vorname,nachname,gewicht,groesse, blutgruppe,alterskategorie,alter.) VALUES
+(0791234569, 'Triemlispital', 'Thomas', 'Schneider',70.0,1.87, AB, 4,30);
 
-    INSERT INTO PatientEmpfanger (telefonnummer,spital,vorname,nachname,gewicht,groesse, blutgruppe,alterskategorie,alter.) VALUES
-(0791234569, 'Triemlispital', 'Thomas', 'Schneider',70.0,1.87, AB, 4,30),
+INSERT INTO PatientEmpfanger (telefonnummer,spital,vorname,nachname,gewicht,groesse) VALUES
+(0791234569', 'Triemlispital', 'Thomas', 'Schneider',70.0, 1.78);
