@@ -1,7 +1,8 @@
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(250) NOT NULL UNIQUE,
-    password VARCHAR(250) NOT NULL
+    password VARCHAR(250) NOT NULL,
+    role ENUM('pending','doctor','admin') DEFAULT 'pending'
 );
 
 CREATE TABLE todos (
@@ -11,17 +12,21 @@ CREATE TABLE todos (
     due DATETIME,
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
-CREATE TABLE zustaendigerArzt (
+CREATE TABLE aerzte (
     arztid INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
     vorname VARCHAR(250) NOT NULL
     nachname VARCHAR(250) NOT NULL,
     spital VARCHAR(250),
-    telefonnummer INT(10)
+    telefonnummer VARCHAR(10),
+    zertifikat_datei VARCHAR (255),
+    FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
-CREATE TABLE PatientEmpfanger (
+CREATE TABLE patienten (
     patientenid INT AUTO_INCREMENT PRIMARY KEY,
-    telefonnummer INT(10) NOT NULL UNIQUE,
+    arztid INT NOT NULL,
+    telefonnummer VARCHAR(10) NOT NULL UNIQUE,
     spital VARCHAR(250) NOT NULL,
     vorname VARCHAR(250) NOT NULL,
     nachname VARCHAR(250) NOT NULL,
