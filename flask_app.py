@@ -136,6 +136,52 @@ def users():
     users_list = db_read("SELECT username FROM users ORDER BY username", ())
     return render_template("users.html", users=users_list)
 
+
+
+@app.route("/dbexplorer", methods=["GET", "POST"])
+@login_required
+def dbexplorer():
+    # Alle Tabellennamen holen
+    tables_raw = db_read("SHOW TABLES")
+    all_tables = [next(iter(row.values())) for row in tables_raw]  # erste Spalte jedes Dicts
+
+    selected_tables = []
+    limit = 50  # Default
+    results = {}
+
+    if request.method == "POST":
+        # Gewählte Tabellen einsammeln
+        selected_tables = request.form.getlist("tables")
+
+        # Limit aus Formular lesen
+        limit_str = request.form.get("limit") or ""
+        try:
+            limit = int(limit_str)
+        except ValueError:
+            limit = 50
+
+        # Limit ein bisschen absichern
+        if limit < 1:
+            limit = 1
+        elif limit > 1000:
+            limit = 1000
+
+        allowed = set(all_tables)
+
+        # Pro gewählter Tabelle Daten abfragen
+        for table in selected_tables:
+            if table in allowed:  # einfache Absicherung gegen SQL-Injection
+                rows = db_read(f"SELECT * FROM `{table}` LIMIT %s", (limit,))
+                results[table] = rows
+
+    return render_template(
+        "dbexplorer.html",
+        all_tables=all_tables,
+        selected_tables=selected_tables,
+        results=results,
+        limit=limit,
+    )
+
 # Diese zwei Zeilen MÜSSEN ganz am Ende stehen
 if __name__ == "__main__":
     app.run()
