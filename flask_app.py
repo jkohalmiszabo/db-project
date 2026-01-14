@@ -1,4 +1,4 @@
-from flask import Flask, redirect, render_template, request, url_for
+from flask import Flask, redirect, render_template, request, url_for, abort
 from dotenv import load_dotenv
 import os
 import git
@@ -7,9 +7,8 @@ import hashlib
 from db import db_read, db_write
 from auth import login_manager, authenticate, register_user
 from flask_login import login_user, logout_user, login_required, current_user
-import logging
 from functools import wraps
-from flask import abort
+import logging
 
 
 logging.basicConfig(
@@ -30,6 +29,19 @@ app.secret_key = "supersecret"
 login_manager.init_app(app)
 login_manager.login_view = "login"
 
+def role_required(*roles):
+    def decorator(fn):
+        @wraps(fn)
+        def wrapper(*args, **kwargs):
+            if not current_user.is_authenticated:
+                return login_manager.unauthorized()
+            if getattr(current_user, "role", None) not in roles:
+                abort(403)
+            return fn(*args, **kwargs)
+        return wrapper
+    return decorator
+
+
 # DON'T CHANGEn 
 def is_valid_signature(x_hub_signature, data, private_key):
     hash_algorithm, github_signature = x_hub_signature.split('=', 1)
@@ -49,23 +61,8 @@ def webhook():
         return 'Updated PythonAnywhere successfully', 200
     return 'Unathorized', 401
 
-# Auth routes
 
-from functools import wraps
-from flask import abort
 
-def role_required(*roles):
-    def decorator(fn):
-        @wraps(fn)
-        def wrapper(*args, **kwargs):
-            if not current_user.is_authenticated:
-                return login_manager.unauthorized()
-            # current_user.role muss es geben (kommt aus auth/user model)
-            if getattr(current_user, "role", None) not in roles:
-                abort(403)
-            return fn(*args, **kwargs)
-        return wrapper
-    return decorator
 
 
 @app.route("/doctor/dashboard")
@@ -167,12 +164,35 @@ def new_deceased():
 @login_required
 @role_required("doctor", "admin")
 def allocate():
-    # zeigt Vorschläge / führt Zuteilung aus
-    # sehr einfache Variante: identische Blutgruppe + Organ + höchste Dringlichkeit
     suggestions = []
+    did_run = False
 
     if request.method == "POST":
-        # alle spenderorgane durchgehen
+        did_run = True
+
+        spender = db_read("""
+            SELECT so.spenderorganid, so.organ,
+                   v.blutgruppe
+            FROM spenderorgane so
+            JOIN verstorbener v ON v.verstorbenenid = so.verstorbenenid
+        """, ())
+
+        for s in spender:
+            match = db_read("""
+                SELECT ko.krankesorganid, ko.dringlichkeit,
+                       p.patientenid, p.vorname, p.nachname, p.spital, p.blutgruppe
+                FROM krankesorgan ko
+                JOIN patienten p ON p.patientenid = ko.patientenid
+                WHERE ko.organ=%s AND p.blutgruppe=%s
+                ORDER BY ko.dringlichkeit DESC
+                LIMIT 1
+            """, (s["organ"], s["blutgruppe"]))
+
+            if match:
+                suggestions.append({"spender": s, "match": match[0]})
+
+    return render_template("allocate.html", suggestions=suggestions, did_run=did_run)
+
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
