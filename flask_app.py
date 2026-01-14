@@ -47,6 +47,130 @@ def webhook():
     return 'Unathorized', 401
 
 # Auth routes
+
+from functools import wraps
+from flask import abort
+
+def role_required(*roles):
+    def decorator(fn):
+        @wraps(fn)
+        def wrapper(*args, **kwargs):
+            if not current_user.is_authenticated:
+                return login_manager.unauthorized()
+            # current_user.role muss es geben (kommt aus auth/user model)
+            if getattr(current_user, "role", None) not in roles:
+                abort(403)
+            return fn(*args, **kwargs)
+        return wrapper
+    return decorator
+
+
+@app.route("/doctor/dashboard")
+@login_required
+@role_required("doctor", "admin")
+def doctor_dashboard():
+    # Eigene Patienten + offene Organ-Warteliste anzeigen
+    waiting = db_read("""
+        SELECT ko.krankesorganid, ko.organ, ko.dringlichkeit,
+               p.patientenid, p.vorname, p.nachname, p.blutgruppe, p.spital,
+               a.arztid
+        FROM krankesorgan ko
+        JOIN patienten p ON p.patientenid = ko.patientenid
+        JOIN aerzte a ON a.arztid = p.arztid
+        WHERE a.user_id = %s
+        ORDER BY ko.dringlichkeit DESC
+    """, (current_user.id,))
+    return render_template("doctor_dashboard.html", waiting=waiting)
+
+
+@app.route("/doctor/patient/new", methods=["GET", "POST"])
+@login_required
+@role_required("doctor", "admin")
+def new_patient():
+    # Arzt-ID holen
+    arzt = db_read("SELECT arztid FROM aerzte WHERE user_id=%s", (current_user.id,))
+    if not arzt:
+        return "Kein Arztprofil gefunden. (Admin muss dich evtl. freischalten)", 403
+    arztid = arzt[0]["arztid"]
+
+    if request.method == "GET":
+        return render_template("patient_new.html")
+
+    # Patient speichern
+    telefon = request.form["telefonnummer"]
+    spital = request.form["spital"]
+    vorname = request.form["vorname"]
+    nachname = request.form["nachname"]
+    gewicht = request.form["gewicht"]
+    groesse = request.form["groesse"]
+    blutgruppe = request.form["blutgruppe"]
+    alterskategorie = request.form["alterskategorie"]
+    alter_jahre = request.form["alter_jahre"]
+
+    db_write("""
+        INSERT INTO patienten (arztid, telefonnummer, spital, vorname, nachname, gewicht, groesse, blutgruppe, alterskategorie, alter_jahre)
+        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+    """, (arztid, telefon, spital, vorname, nachname, gewicht, groesse, blutgruppe, alterskategorie, alter_jahre))
+
+    # neueste patientenid holen
+    pid = db_read("SELECT patientenid FROM patienten WHERE telefonnummer=%s", (telefon,))[0]["patientenid"]
+
+    # krankes Organ/Warteliste speichern
+    organ = request.form["organ"]
+    dringlichkeit = request.form["dringlichkeit"]
+    db_write("""
+        INSERT INTO krankesorgan (patientenid, organ, dringlichkeit)
+        VALUES (%s,%s,%s)
+    """, (pid, organ, dringlichkeit))
+
+    return redirect(url_for("doctor_dashboard"))
+
+
+@app.route("/doctor/deceased/new", methods=["GET", "POST"])
+@login_required
+@role_required("doctor", "admin")
+def new_deceased():
+    if request.method == "GET":
+        return render_template("deceased_new.html")
+
+    tel_angeh = request.form.get("telefonnummerangehorige")
+    spital = request.form.get("spital")
+    vorname = request.form.get("vorname")
+    nachname = request.form.get("nachname")
+    gewicht = request.form["gewicht"]
+    groesse = request.form["groesse"]
+    blutgruppe = request.form["blutgruppe"]
+    alterskategorie = request.form["alterskategorie"]
+
+    db_write("""
+        INSERT INTO verstorbener (telefonnummerangehorige, spital, vorname, nachname, gewicht, groesse, blutgruppe, alterskategorie)
+        VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
+    """, (tel_angeh, spital, vorname, nachname, gewicht, groesse, blutgruppe, alterskategorie))
+
+    vid = db_read("""
+        SELECT verstorbenenid FROM verstorbener
+        ORDER BY verstorbenenid DESC LIMIT 1
+    """)[0]["verstorbenenid"]
+
+    # Mehrere Organe aus Formular (Checkboxen)
+    organs = request.form.getlist("organs")
+    for organ in organs:
+        db_write("INSERT INTO spenderorgane (verstorbenenid, organ) VALUES (%s,%s)", (vid, organ))
+
+    return redirect(url_for("doctor_dashboard"))
+
+
+@app.route("/doctor/allocate", methods=["GET", "POST"])
+@login_required
+@role_required("doctor", "admin")
+def allocate():
+    # zeigt Vorschläge / führt Zuteilung aus
+    # sehr einfache Variante: identische Blutgruppe + Organ + höchste Dringlichkeit
+    suggestions = []
+
+    if request.method == "POST":
+        # alle spenderorgane durchgehen
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     error = None
