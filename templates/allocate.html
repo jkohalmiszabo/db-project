@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+  <h2>Organe zuteilen</h2>
+
+  <form method="POST" class="mb-3">
+    <button class="btn btn-primary" type="submit">Zuteilung berechnen</button>
+    <a class="btn btn-secondary" href="{{ url_for('doctor_dashboard') }}">Zurück</a>
+  </form>
+
+  {% if did_run %}
+    <h4>Vorschläge</h4>
+    {% if suggestions %}
+      {% for s in suggestions %}
+        <div class="card mb-3 shadow-sm">
+          <div class="card-header">
+            <strong>Spenderorgan:</strong> {{ s.spender.organ }} (Blutgruppe {{ s.spender.blutgruppe }})
+          </div>
+          <div class="card-body">
+            <p class="mb-1"><strong>Empfänger:</strong> {{ s.match.vorname }} {{ s.match.nachname }}</p>
+            <p class="mb-1"><strong>Spital:</strong> {{ s.match.spital }}</p>
+            <p class="mb-0"><strong>Dringlichkeit:</strong> <span class="badge bg-danger">{{ s.match.dringlichkeit }}</span></p>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <p class="text-muted">Keine passenden Matches gefunden.</p>
+    {% endif %}
+  {% else %}
+    <p class="text-muted">Klicke auf „Zuteilung berechnen“, um Vorschläge zu sehen.</p>
+  {% endif %}
+</div>
+{% endblock %}
