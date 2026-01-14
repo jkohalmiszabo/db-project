@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4" style="max-width: 700px;">
+  <h2>Neuen Patienten erfassen</h2>
+
+  <form method="POST" class="card p-3 shadow-sm">
+    <h5 class="mb-3">Patientendaten</h5>
+
+    <div class="row g-2">
+      <div class="col-md-6">
+        <label class="form-label">Vorname</label>
+        <input name="vorname" class="form-control" required>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Nachname</label>
+        <input name="nachname" class="form-control" required>
+      </div>
+    </div>
+
+    <div class="row g-2 mt-2">
+      <div class="col-md-6">
+        <label class="form-label">Telefonnummer</label>
+        <input name="telefonnummer" class="form-control" required>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Spital</label>
+        <input name="spital" class="form-control" required>
+      </div>
+    </div>
+
+    <div class="row g-2 mt-2">
+      <div class="col-md-4">
+        <label class="form-label">Gewicht (kg)</label>
+        <input name="gewicht" type="number" step="0.1" class="form-control" required>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Grösse (cm)</label>
+        <input name="groesse" type="number" step="0.1" class="form-control" required>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Blutgruppe</label>
+        <select name="blutgruppe" class="form-select" required>
+          <option>A+</option><option>A-</option>
+          <option>B+</option><option>B-</option>
+          <option>AB+</option><option>AB-</option>
+          <option>0+</option><option>0-</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row g-2 mt-2">
+      <div class="col-md-6">
+        <label class="form-label">Alterskategorie</label>
+        <input name="alterskategorie" type="number" class="form-control" required>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Alter (Jahre)</label>
+        <input name="alter_jahre" type="number" class="form-control" required>
+      </div>
+    </div>
+
+    <hr class="my-3">
+
+    <h5 class="mb-3">Warteliste (krankes Organ)</h5>
+    <div class="row g-2">
+      <div class="col-md-8">
+        <label class="form-label">Organ</label>
+        <select name="organ" class="form-select" required>
+          <option>Herz</option>
+          <option>Leber</option>
+          <option>Niere</option>
+          <option>Lunge</option>
+          <option>Bauchspeicheldrüse</option>
+          <option>Darm</option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Dringlichkeit (1-10)</label>
+        <input name="dringlichkeit" type="number" min="1" max="10" class="form-control" required>
+      </div>
+    </div>
+
+    <div class="d-flex gap-2 mt-3">
+      <button class="btn btn-success" type="submit">Speichern</button>
+      <a class="btn btn-secondary" href="{{ url_for('doctor_dashboard') }}">Abbrechen</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
