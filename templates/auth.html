@@ -59,6 +59,53 @@
         >
       </div>
 
+            {% if button_label == "Registrieren" %}
+      <hr>
+
+      <div class="form-group">
+        <label for="vorname">Vorname</label>
+        <input
+          type="text"
+          class="form-control"
+          name="vorname"
+          placeholder="Vorname"
+          required
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="nachname">Nachname</label>
+        <input
+          type="text"
+          class="form-control"
+          name="nachname"
+          placeholder="Nachname"
+          required
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="spital">Spital</label>
+        <input
+          type="text"
+          class="form-control"
+          name="spital"
+          placeholder="Spital"
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="telefonnummer">Telefonnummer</label>
+        <input
+          type="text"
+          class="form-control"
+          name="telefonnummer"
+          placeholder="Telefonnummer"
+        >
+      </div>
+      {% endif %}
+
+
       <button type="submit" class="btn btn-primary btn-block">
         {{ button_label }}
       </button>
