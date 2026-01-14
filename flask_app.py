@@ -101,7 +101,7 @@ def admin_pending_doctors():
         ORDER BY username
     """, ())
     return render_template("admin_pending_doctors.html", pending=pending)
-wo 
+ 
 
 
 @app.route("/doctor/patient/new", methods=["GET", "POST"])
