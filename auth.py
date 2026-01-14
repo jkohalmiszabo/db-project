@@ -88,7 +88,7 @@ def register_user(username, password):
     try:
         db_write(
             "INSERT INTO users (username, password) VALUES (%s, %s)",
-            (username, hashed)
+            (username, hashed, "pending")
         )
         logger.info("register_user(): User '%s' erfolgreich angelegt", username)
     except Exception:
