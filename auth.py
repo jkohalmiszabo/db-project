@@ -10,10 +10,11 @@ login_manager = LoginManager()
 
 
 class User(UserMixin):
-    def __init__(self, id, username, password):
+    def __init__(self, id, username, password,role):
         self.id = id
         self.username = username
         self.password = password
+        self.role = role
 
     @staticmethod
     def get_by_id(user_id):
@@ -30,7 +31,7 @@ class User(UserMixin):
             return None
 
         if row:
-            return User(row["id"], row["username"], row["password"])
+            return User(row["id"], row["username"], row["password"], row["role"])
         else:
             logger.warning("User.get_by_id(): kein User mit id=%s gefunden", user_id)
             return None
@@ -50,7 +51,7 @@ class User(UserMixin):
             return None
 
         if row:
-            return User(row["id"], row["username"], row["password"])
+            return User(row["id"], row["username"], row["password"], row["role"])
         else:
             logger.info("User.get_by_username(): kein User mit username=%s", username)
             return None
