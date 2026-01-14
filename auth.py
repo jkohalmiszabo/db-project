@@ -76,7 +76,8 @@ def load_user(user_id):
 
 
 # Helpers
-def register_user(username, password):
+def register_user(username, password, vorname, nachname, spital=None, telefonnummer=None):
+
     logger.info("register_user(): versuche neuen User '%s' anzulegen", username)
 
     existing = User.get_by_username(username)
@@ -103,10 +104,9 @@ def register_user(username, password):
 
         # 3) Arztprofil minimal anlegen
         db_write(
-            "INSERT INTO aerzte (user_id) VALUES (%s)",
-            (user_id,)
-        )
-
+             "INSERT INTO aerzte (user_id, vorname, nachname, spital, telefonnummer) VALUES (%s, %s, %s, %s, %s)",
+    (user_id, vorname, nachname, spital, telefonnummer)
+)
         logger.info("register_user(): User '%s' erfolgreich angelegt (doctor)", username)
 
     except Exception:
