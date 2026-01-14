@@ -23,7 +23,7 @@ CREATE TABLE aerzte (
 CREATE TABLE patienten (
     patientenid INT AUTO_INCREMENT PRIMARY KEY,
     arztid INT NOT NULL,
-    telefonnummer VARCHAR(15) NOT NULL UNIQUE,
+    telefonnummer VARCHAR(15) NOT NULL,
     spital VARCHAR(250) NOT NULL,
     vorname VARCHAR(250) NOT NULL,
     nachname VARCHAR(250) NOT NULL,
