@@ -5,6 +5,10 @@ CREATE TABLE users (
     role ENUM('pending','doctor','admin') DEFAULT 'pending'
 );
 
+#pending=arzt, wartet bis zertifikat geprüft wird
+#doctor, darf patienten erfassen
+#admin darf pending aerzte freischalten
+
 CREATE TABLE aerzte (
     arztid INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -59,3 +63,14 @@ CREATE TABLE spenderorgane (
     organ VARCHAR (30) NOT NULL,
     FOREIGN KEY (verstorbenenid) REFERENCES verstorbener (verstorbenenid)
 );
+
+CREATE TABLE zuteilung (
+    zuteilungid INT AUTO_INCREMENT PRIMARY KEY,
+    spenderorganid INT NOT NULL,
+    krankesorganid INT NOT NULL,
+    zeitpunkt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    status ENUM('proposed','confirmed','rejected') DEFAULT 'proposed',
+    FOREIGN KEY (spenderorganid) REFERENCES spenderorgane(spenderorganid),
+    FOREIGN KEY (krankesorganid) REFERENCES krankesorgan(krankesorganid)
+);
+
