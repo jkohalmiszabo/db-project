@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+  <h2>Arzt Dashboard</h2>
+
+  <div class="mb-3">
+    <a class="btn btn-success" href="{{ url_for('new_patient') }}">+ Patient erfassen</a>
+    <a class="btn btn-warning" href="{{ url_for('new_deceased') }}">+ Verstorbenen erfassen</a>
+    <a class="btn btn-primary" href="{{ url_for('allocate') }}">Organe zuteilen</a>
+  </div>
+
+  <h4>Warteliste (deine Patienten)</h4>
+  {% if waiting %}
+  <div class="table-responsive">
+    <table class="table table-striped table-bordered align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>Organ</th>
+          <th>Dringlichkeit</th>
+          <th>Patient</th>
+          <th>Blutgruppe</th>
+          <th>Spital</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for w in waiting %}
+        <tr>
+          <td>{{ w.organ }}</td>
+          <td><span class="badge bg-danger">{{ w.dringlichkeit }}</span></td>
+          <td>{{ w.vorname }} {{ w.nachname }}</td>
+          <td>{{ w.blutgruppe }}</td>
+          <td>{{ w.spital }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <p class="text-muted">Noch keine Wartelisteneinträge.</p>
+  {% endif %}
+</div>
+{% endblock %}
