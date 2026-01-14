@@ -5,68 +5,57 @@ CREATE TABLE users (
     role ENUM('pending','doctor','admin') DEFAULT 'pending'
 );
 
-CREATE TABLE todos (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    content VARCHAR(100),
-    due DATETIME,
-    FOREIGN KEY (user_id) REFERENCES users(id)
-);
 CREATE TABLE aerzte (
     arztid INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
-    vorname VARCHAR(250) NOT NULL
+    vorname VARCHAR(250) NOT NULL,
     nachname VARCHAR(250) NOT NULL,
     spital VARCHAR(250),
-    telefonnummer VARCHAR(10),
+    telefonnummer VARCHAR(15),
     zertifikat_datei VARCHAR (255),
-    FOREIGN KEY (user_id) REFERENCES users(id)
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE patienten (
     patientenid INT AUTO_INCREMENT PRIMARY KEY,
     arztid INT NOT NULL,
-    telefonnummer VARCHAR(10) NOT NULL UNIQUE,
+    telefonnummer VARCHAR(15) NOT NULL UNIQUE,
     spital VARCHAR(250) NOT NULL,
     vorname VARCHAR(250) NOT NULL,
     nachname VARCHAR(250) NOT NULL,
-    gewicht FLOAT(4) NOT NULL,
-    groesse FLOAT(4) NOT NULL,
+    gewicht FLOAT NOT NULL,
+    groesse FLOAT NOT NULL,
     blutgruppe VARCHAR(4) NOT NULL,
-    alterskategorie INT(2) NOT NUll,
-    alter. INT(3) NOT NULL
-    FOREIGN KEY (arztid) REFERENCES zustaendigerArzt(arztid)
+    alterskategorie INT NOT NUll,
+    alter_jahre INT NOT NULL,
+    FOREIGN KEY (arztid) REFERENCES aerzte(arztid)
 );
 
-CREATE TABLE krankesOrgan (
-    FOREIGN KEY (patientenid) REFERENCES PatientEmpfanger(patientenid),
+CREATE TABLE krankesorgan (
+    krankesorganid INT AUTO_INCREMENT PRIMARY KEY,
+    patientenid INT NOT NULL,
     organ VARCHAR(30) NOT NULL,
-    dringlichkeit INT(2) NOT NULL
+    dringlichkeit INT NOT NULL,
+    FOREIGN KEY (patientenid) REFERENCES patienten(patientenid)
 );
 
-CREATE TABLE Spenderorgane (
-    organ VARCHAR (30) NOT NULL,
-    FOREIGN KEY (verstorbenenid) REFERENCES VerstorbenerHirntoter (verstorbenenid)
-);
-
-CREATE TABLE VerstorbenerHirntoter (
-    verstorbenenid INT AUTO-INCREMENT PRIMARY KEY,
-    telefonnummerangehorige INT(10),
+CREATE TABLE verstorbener (
+    verstorbenenid INT AUTO_INCREMENT PRIMARY KEY,
+    telefonnummerangehorige VARCHAR(15),
     spital VARCHAR (250),
     vorname VARCHAR(250),
     nachname VARCHAR(250),
-    gewicht FLOAT(4) NOT NULL,
-    groesse FLOAT(4) NOT NULL,
+    gewicht FLOAT NOT NULL,
+    groesse FLOAT NOT NULL,
     blutgruppe VARCHAR(4) NOT NULL,
-    alterskategorie INT(2) NOT NUll
+    alterskategorie INT NOT NULL
+    
 );
 
-INSERT INTO zustaendigerArzt(vorname,nachname,spital,telefonnummer) VALUES
-('Joseph', 'Müller',' Uniklinik Zürich',0791234567),
-('Anna','Schneider',' Uniklinik Luzern',0791234568);
 
-INSERT INTO PatientEmpfanger (telefonnummer,spital,vorname,nachname,gewicht,groesse, blutgruppe,alterskategorie,alter.) VALUES
-(0791234569, 'Triemlispital', 'Thomas', 'Schneider',70.0,1.87, AB, 4,30);
-
-INSERT INTO PatientEmpfanger (telefonnummer,spital,vorname,nachname,gewicht,groesse) VALUES
-(0791234569', 'Triemlispital', 'Thomas', 'Schneider',70.0, 1.78);
+CREATE TABLE spenderorgane (
+    spenderorganid INT AUTO_INCREMENT PRIMARY KEY,
+    verstorbenenid INT NOT NULL,
+    organ VARCHAR (30) NOT NULL,
+    FOREIGN KEY (verstorbenenid) REFERENCES verstorbener (verstorbenenid)
+);
