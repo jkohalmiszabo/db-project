@@ -291,6 +291,9 @@ def logout():
 @app.route("/", methods=["GET", "POST"])
 @login_required
 def index():
+    if getattr(current_user, "role", None) in ("doctor", "admin"):
+        return redirect(url_for("doctor_dashboard"))
+    
     # GET
     if request.method == "GET":
         todos = db_read("SELECT id, content, due FROM todos WHERE user_id=%s ORDER BY due", (current_user.id,))
