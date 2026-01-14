@@ -227,6 +227,11 @@ def login():
 
         if user:
             login_user(user)
+
+            # Ärzte/Admin direkt ins Arzt-Dashboard
+            if getattr(user, "role", None) in ("doctor", "admin"):
+                return redirect(url_for("doctor_dashboard"))
+
             return redirect(url_for("index"))
 
         error = "Benutzername oder Passwort ist falsch."
