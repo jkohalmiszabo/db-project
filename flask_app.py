@@ -250,8 +250,14 @@ def register():
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
+        vorname = request.form["vorname"]
+        nachname = request.form["nachname"]
+        spital = request.form.get("spital") or None
+        telefonnummer = request.form.get("telefonnummer") or None
 
-        ok = register_user(username, password)
+
+        ok = register_user(username, password, vorname, nachname, spital, telefonnummer)
+
         if ok:
             return redirect(url_for("login"))
 
