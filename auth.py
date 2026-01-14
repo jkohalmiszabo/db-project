@@ -85,12 +85,30 @@ def register_user(username, password):
         return False
 
     hashed = generate_password_hash(password)
+
     try:
+        # 1) User als doctor anlegen
         db_write(
-            "INSERT INTO users (username, password) VALUES (%s, %s)",
-            (username, hashed, "pending")
+            "INSERT INTO users (username, password, role) VALUES (%s, %s, %s)",
+            (username, hashed, "doctor")
         )
-        logger.info("register_user(): User '%s' erfolgreich angelegt", username)
+
+        # 2) user_id holen
+        row = db_read(
+            "SELECT id FROM users WHERE username=%s",
+            (username,),
+            single=True
+        )
+        user_id = row["id"]
+
+        # 3) Arztprofil minimal anlegen
+        db_write(
+            "INSERT INTO aerzte (user_id) VALUES (%s)",
+            (user_id,)
+        )
+
+        logger.info("register_user(): User '%s' erfolgreich angelegt (doctor)", username)
+
     except Exception:
         logger.exception("Fehler beim Anlegen von User '%s'", username)
         return False
