@@ -222,17 +222,17 @@ def allocate():
     if request.method == "POST":
         did_run = True
 
+        # 1) Nur Spenderorgane, die noch nicht vorgeschlagen/zugeteilt wurden
         spender = db_read("""
             SELECT so.spenderorganid, so.organ,
-                v.blutgruppe,
-                v.alterskategorie
+                   v.blutgruppe,
+                   v.alterskategorie
             FROM spenderorgane so
             JOIN verstorbener v ON v.verstorbenenid = so.verstorbenenid
             LEFT JOIN zuteilung z ON z.spenderorganid = so.spenderorganid
-                                AND z.status IN ('proposed','confirmed')
+                                 AND z.status IN ('proposed','confirmed')
             WHERE z.zuteilungid IS NULL
         """, ())
-        
 
         for s in spender:
             empfaenger_bgs = kompatible_empfaenger_blutgruppen(s["blutgruppe"])
@@ -241,32 +241,31 @@ def allocate():
 
             placeholders = ",".join(["%s"] * len(empfaenger_bgs))
 
+            # 2) Nur Wartelisten-Einträge, die noch nicht vorgeschlagen/zugeteilt wurden
             match = db_read(f"""
-                SELECT ko.krankesorganid, ko.dringlichkeit,
+                SELECT ko.krankesorganid, ko.dringlichkeit, ko.created_at,
                        p.patientenid, p.vorname, p.nachname, p.spital, p.blutgruppe
                 FROM krankesorgan ko
                 JOIN patienten p ON p.patientenid = ko.patientenid
-                WHERE ko.organ = %s
+                LEFT JOIN zuteilung z ON z.krankesorganid = ko.krankesorganid
+                                     AND z.status IN ('proposed','confirmed')
+                WHERE z.zuteilungid IS NULL
+                  AND ko.organ = %s
                   AND p.blutgruppe IN ({placeholders})
                   AND p.alterskategorie = %s
                 ORDER BY
-                    LEAST(10, ko.dringlichkeit + FLOOR(TIMESTAMPDIFF(DAY, ko.created_at, NOW()) / 30)) DESC,
-                    ko.created_at ASC
-
+                  LEAST(10, ko.dringlichkeit + FLOOR(TIMESTAMPDIFF(DAY, ko.created_at, NOW()) / 30)) DESC,
+                  ko.created_at ASC
                 LIMIT 1
             """, tuple([s["organ"]] + empfaenger_bgs + [s["alterskategorie"]]))
 
             if match:
-                # als "proposed" speichern, damit es nicht nochmal vorgeschlagen wird
+                # 3) Vorschlag speichern, damit er nicht nochmal auftaucht
                 db_write(
-                     "INSERT INTO zuteilung (spenderorganid, krankesorganid, status) VALUES (%s, %s, 'proposed')",
-                     (s["spenderorganid"], match[0]["krankesorganid"])
-                 )
+                    "INSERT INTO zuteilung (spenderorganid, krankesorganid, status) VALUES (%s, %s, 'proposed')",
+                    (s["spenderorganid"], match[0]["krankesorganid"])
+                )
 
-    suggestions.append({"spender": s, "match": match[0]})
-
-
-            if match:
                 suggestions.append({"spender": s, "match": match[0]})
 
     return render_template("allocate.html", suggestions=suggestions, did_run=did_run)
