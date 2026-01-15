@@ -141,8 +141,8 @@ def new_patient():
     gewicht = request.form["gewicht"]
     groesse = request.form["groesse"]
     blutgruppe = request.form["blutgruppe"]
-    alterskategorie = request.form["alterskategorie"]
-    alter_jahre = request.form["alter_jahre"]
+    alter_jahre = int(request.form["alter_jahre"])
+    alterskategorie = calc_alterskategorie(alter_jahre)
 
     db_write("""
         INSERT INTO patienten (arztid, telefonnummer, spital, vorname, nachname, gewicht, groesse, blutgruppe, alterskategorie, alter_jahre)
