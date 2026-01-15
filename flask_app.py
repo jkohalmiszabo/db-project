@@ -232,7 +232,7 @@ def allocate():
                                 AND z.status IN ('proposed','confirmed')
             WHERE z.zuteilungid IS NULL
         """, ())
-        )
+        
 
         for s in spender:
             empfaenger_bgs = kompatible_empfaenger_blutgruppen(s["blutgruppe"])
