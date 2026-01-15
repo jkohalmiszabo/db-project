@@ -210,9 +210,11 @@ def allocate():
 
         spender = db_read("""
             SELECT so.spenderorganid, so.organ,
-                   v.blutgruppe
+                v.blutgruppe,
+                v.alterskategorie
             FROM spenderorgane so
             JOIN verstorbener v ON v.verstorbenenid = so.verstorbenenid
+
         """, ())
 
         for s in spender:
@@ -221,10 +223,12 @@ def allocate():
                        p.patientenid, p.vorname, p.nachname, p.spital, p.blutgruppe
                 FROM krankesorgan ko
                 JOIN patienten p ON p.patientenid = ko.patientenid
-                WHERE ko.organ=%s AND p.blutgruppe=%s
+                WHERE ko.organ=%s AND p.blutgruppe=%s AND p.alterskategorie=%s
+
                 ORDER BY ko.dringlichkeit DESC
                 LIMIT 1
-            """, (s["organ"], s["blutgruppe"]))
+            """, (s["organ"], s["blutgruppe"], s["alterskategorie"])
+
 
             if match:
                 suggestions.append({"spender": s, "match": match[0]})
