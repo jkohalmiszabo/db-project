@@ -224,14 +224,14 @@ def allocate():
 
         spender = db_read("""
             SELECT so.spenderorganid, so.organ,
-                v.blutgruppe,
-                v.alterskategorie
+                   v.blutgruppe,
+                   v.alterskategorie
             FROM spenderorgane so
             JOIN verstorbener v ON v.verstorbenenid = so.verstorbenenid
-
         """, ())
 
-                for s in spender:
+        for s in spender:
+            # kompatible Blutgruppen berechnen
             empfaenger_bgs = kompatible_empfaenger_blutgruppen(s["blutgruppe"])
             if not empfaenger_bgs:
                 continue
@@ -243,9 +243,9 @@ def allocate():
                        p.patientenid, p.vorname, p.nachname, p.spital, p.blutgruppe
                 FROM krankesorgan ko
                 JOIN patienten p ON p.patientenid = ko.patientenid
-                WHERE ko.organ=%s
+                WHERE ko.organ = %s
                   AND p.blutgruppe IN ({placeholders})
-                  AND p.alterskategorie=%s
+                  AND p.alterskategorie = %s
                 ORDER BY ko.dringlichkeit DESC
                 LIMIT 1
             """, tuple([s["organ"]] + empfaenger_bgs + [s["alterskategorie"]]))
@@ -253,11 +253,7 @@ def allocate():
             if match:
                 suggestions.append({"spender": s, "match": match[0]})
 
-
-            
-
     return render_template("allocate.html", suggestions=suggestions, did_run=did_run)
-
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
