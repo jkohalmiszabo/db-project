@@ -224,11 +224,15 @@ def allocate():
 
         spender = db_read("""
             SELECT so.spenderorganid, so.organ,
-                   v.blutgruppe,
-                   v.alterskategorie
+                v.blutgruppe,
+                v.alterskategorie
             FROM spenderorgane so
             JOIN verstorbener v ON v.verstorbenenid = so.verstorbenenid
+            LEFT JOIN zuteilung z ON z.spenderorganid = so.spenderorganid
+                                AND z.status IN ('proposed','confirmed')
+            WHERE z.zuteilungid IS NULL
         """, ())
+        )
 
         for s in spender:
             empfaenger_bgs = kompatible_empfaenger_blutgruppen(s["blutgruppe"])
