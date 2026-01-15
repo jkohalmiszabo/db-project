@@ -92,9 +92,8 @@ def doctor_dashboard():
 def new_patient():
     # Arzt-ID holen
     arzt = db_read("SELECT arztid FROM aerzte WHERE user_id=%s", (current_user.id,))
-    if not arzt:
-        return "Kein Arztprofil gefunden. (Admin muss dich evtl. freischalten)", 403
     arztid = arzt[0]["arztid"]
+
 
     if request.method == "GET":
         return render_template("patient_new.html")
