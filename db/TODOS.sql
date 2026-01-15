@@ -40,8 +40,10 @@ CREATE TABLE krankesorgan (
     patientenid INT NOT NULL,
     organ VARCHAR(30) NOT NULL,
     dringlichkeit INT NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (patientenid) REFERENCES patienten(patientenid)
 );
+
 
 CREATE TABLE verstorbener (
     verstorbenenid INT AUTO_INCREMENT PRIMARY KEY,
