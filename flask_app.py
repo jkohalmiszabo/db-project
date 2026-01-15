@@ -68,6 +68,20 @@ def calc_alterskategorie(alter_jahre: int) -> int:
     raise ValueError("Alter ausserhalb 0-100")
 
 
+def kompatible_empfaenger_blutgruppen(spender_bg: str):
+    mapping = {
+        "0-":  ["0-", "0+", "A-", "A+", "B-", "B+", "AB-", "AB+"],
+        "0+":  ["0+", "A+", "B+", "AB+"],
+        "A-":  ["A-", "A+", "AB-", "AB+"],
+        "A+":  ["A+", "AB+"],
+        "B-":  ["B-", "B+", "AB-", "AB+"],
+        "B+":  ["B+", "AB+"],
+        "AB-": ["AB-", "AB+"],
+        "AB+": ["AB+"],
+    }
+    return mapping.get(spender_bg, [])
+
+
 
 # DON'T CHANGEn 
 def is_valid_signature(x_hub_signature, data, private_key):
@@ -219,15 +233,21 @@ def allocate():
 
         for s in spender:
             match = db_read("""
+                empfaenger_bgs = kompatible_empfaenger_blutgruppen(s["blutgruppe"])
+            if not empfaenger_bgs:
+                continue
+
+            placeholders = ",".join(["%s"] * len(empfaenger_bgs))
+
+            match = db_read(f"""
                 SELECT ko.krankesorganid, ko.dringlichkeit,
-                       p.patientenid, p.vorname, p.nachname, p.spital, p.blutgruppe
+                    p.patientenid, p.vorname, p.nachname, p.spital, p.blutgruppe
                 FROM krankesorgan ko
                 JOIN patienten p ON p.patientenid = ko.patientenid
-                WHERE ko.organ=%s AND p.blutgruppe=%s AND p.alterskategorie=%s
-
+                WHERE ko.organ=%s AND p.blutgruppe IN ({placeholders})
                 ORDER BY ko.dringlichkeit DESC
                 LIMIT 1
-            """, (s["organ"], s["blutgruppe"], s["alterskategorie"])
+            """, tuple([s["organ"]] + empfaenger_bgs))
 
 
             if match:
