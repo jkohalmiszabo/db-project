@@ -245,7 +245,10 @@ def allocate():
                 WHERE ko.organ = %s
                   AND p.blutgruppe IN ({placeholders})
                   AND p.alterskategorie = %s
-                ORDER BY ko.dringlichkeit DESC
+                ORDER BY
+                    LEAST(10, ko.dringlichkeit + FLOOR(TIMESTAMPDIFF(DAY, ko.created_at, NOW()) / 30)) DESC,
+                    ko.created_at ASC
+
                 LIMIT 1
             """, tuple([s["organ"]] + empfaenger_bgs + [s["alterskategorie"]]))
 
