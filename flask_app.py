@@ -1,4 +1,4 @@
-print ("FLASK APP VERSION 2")
+print ("FLASK APP VERSION 1")
 from flask import Flask, redirect, render_template, request, url_for, abort
 from dotenv import load_dotenv
 import os
@@ -84,24 +84,6 @@ def doctor_dashboard():
     return render_template("doctor_dashboard.html", waiting=waiting)
 
 
-
-@app.route("/admin/pending-doctors", methods=["GET", "POST"])
-@login_required
-@role_required("admin")
-def admin_pending_doctors():
-    if request.method == "POST":
-        user_id = request.form["user_id"]
-        db_write("UPDATE users SET role='doctor' WHERE id=%s", (user_id,))
-        return redirect(url_for("admin_pending_doctors"))
-
-    pending = db_read("""
-        SELECT id, username
-        FROM users
-        WHERE role='pending'
-        ORDER BY username
-    """, ())
-    return render_template("admin_pending_doctors.html", pending=pending)
- 
 
 
 @app.route("/doctor/patient/new", methods=["GET", "POST"])
