@@ -177,7 +177,8 @@ def new_deceased():
     gewicht = request.form["gewicht"]
     groesse = request.form["groesse"]
     blutgruppe = request.form["blutgruppe"]
-    alterskategorie = request.form["alterskategorie"]
+    alter_jahre = int(request.form["alter_jahre"])
+    alterskategorie = calc_alterskategorie(alter_jahre)
 
     db_write("""
         INSERT INTO verstorbener (telefonnummerangehorige, spital, vorname, nachname, gewicht, groesse, blutgruppe, alterskategorie)
