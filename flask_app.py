@@ -42,6 +42,32 @@ def role_required(*roles):
         return wrapper
     return decorator
 
+def calc_alterskategorie(alter_jahre: int) -> int:
+    if 0 <= alter_jahre <= 1:
+        return 1
+    if 2 <= alter_jahre <= 3:
+        return 2
+    if 4 <= alter_jahre <= 5:
+        return 3
+    if 6 <= alter_jahre <= 7:
+        return 4
+    if 8 <= alter_jahre <= 9:
+        return 5
+    if 10 <= alter_jahre <= 15:
+        return 6
+    if 16 <= alter_jahre <= 20:
+        return 7
+    if 21 <= alter_jahre <= 40:
+        return 8
+    if 41 <= alter_jahre <= 60:
+        return 9
+    if 61 <= alter_jahre <= 80:
+        return 10
+    if 81 <= alter_jahre <= 100:
+        return 11
+    raise ValueError("Alter ausserhalb 0-100")
+
+
 
 # DON'T CHANGEn 
 def is_valid_signature(x_hub_signature, data, private_key):
