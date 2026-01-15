@@ -257,6 +257,16 @@ def allocate():
             """, tuple([s["organ"]] + empfaenger_bgs + [s["alterskategorie"]]))
 
             if match:
+                # als "proposed" speichern, damit es nicht nochmal vorgeschlagen wird
+                db_write(
+                     "INSERT INTO zuteilung (spenderorganid, krankesorganid, status) VALUES (%s, %s, 'proposed')",
+                     (s["spenderorganid"], match[0]["krankesorganid"])
+                 )
+
+    suggestions.append({"spender": s, "match": match[0]})
+
+
+            if match:
                 suggestions.append({"spender": s, "match": match[0]})
 
     return render_template("allocate.html", suggestions=suggestions, did_run=did_run)
