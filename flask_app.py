@@ -1,4 +1,4 @@
-print ("FLASK APP VERSION 2")
+print ("FLASK APP VERSION 1")
 from flask import Flask, redirect, render_template, request, url_for, abort
 from dotenv import load_dotenv
 import os
