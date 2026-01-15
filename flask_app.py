@@ -231,25 +231,28 @@ def allocate():
         """, ())
 
         for s in spender:
-            # kompatible Blutgruppen berechnen
-            empfaenger_bgs = kompatible_empfaenger_blutgruppen(s["blutgruppe"])
-            if not empfaenger_bgs:
-                continue
+    empfaenger_bgs = kompatible_empfaenger_blutgruppen(s["blutgruppe"])
+    if not empfaenger_bgs:
+        continue
 
-            placeholders = ",".join(["%s"] * len(empfaenger_bgs))
+    placeholders = ",".join(["%s"] * len(empfaenger_bgs))
 
-            match = db_read(f"""
-                SELECT ko.krankesorganid, ko.dringlichkeit,
-                       p.patientenid, p.vorname, p.nachname, p.spital, p.blutgruppe
-                FROM krankesorgan ko
-                JOIN patienten p ON p.patientenid = ko.patientenid
-                WHERE ko.organ = %s
-                  AND p.blutgruppe IN ({placeholders})
-                  AND p.alterskategorie = %s
-                ORDER BY ko.dringlichkeit DESC
-                LIMIT 1
-            """, tuple([s["organ"]] + empfaenger_bgs + [s["alterskategorie"]]))
+    match = db_read(f"""
+        SELECT ko.krankesorganid, ko.dringlichkeit,
+               p.patientenid, p.vorname, p.nachname, p.spital, p.blutgruppe
+        FROM krankesorgan ko
+        JOIN patienten p ON p.patientenid = ko.patientenid
+        WHERE ko.organ = %s
+          AND p.blutgruppe IN ({placeholders})
+          AND p.alterskategorie = %s
+        ORDER BY ko.dringlichkeit DESC
+        LIMIT 1
+    """, tuple([s["organ"]] + empfaenger_bgs + [s["alterskategorie"]]))
 
+    if match:
+        suggestions.append({"spender": s, "match": match[0]})
+
+     
             if match:
                 suggestions.append({"spender": s, "match": match[0]})
 
