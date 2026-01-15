@@ -90,8 +90,17 @@ def doctor_dashboard():
 @login_required
 @role_required("doctor", "admin")
 def new_patient():
-    # Arzt-ID holen
+        # Arzt-ID holen (und falls fehlt: automatisch anlegen)
     arzt = db_read("SELECT arztid FROM aerzte WHERE user_id=%s", (current_user.id,))
+
+    if not arzt:
+        # Auto-Profil erstellen (für alte Accounts)
+        db_write(
+            "INSERT INTO aerzte (user_id, vorname, nachname) VALUES (%s, %s, %s)",
+            (current_user.id, current_user.username, "Auto")
+        )
+        arzt = db_read("SELECT arztid FROM aerzte WHERE user_id=%s", (current_user.id,))
+
     arztid = arzt[0]["arztid"]
 
 
