@@ -119,8 +119,14 @@ def doctor_home():
 def offizielle_warteliste():
     rows = db_read("""
         SELECT 
-          ko.krankesorganid, ko.organ, ko.dringlichkeit, ko.created_at,
-          p.patientenid, p.vorname, p.nachname, p.blutgruppe, p.spital,
+          p.vorname,
+          p.nachname,
+          p.alterskategorie,
+          ko.organ,
+          p.blutgruppe,
+          ko.dringlichkeit,
+          ko.created_at AS eingabedatum,
+          p.arztid,
           a.user_id AS owner_user_id
         FROM krankesorgan ko
         JOIN patienten p ON p.patientenid = ko.patientenid
@@ -130,8 +136,6 @@ def offizielle_warteliste():
 
     return render_template("warteliste.html", waiting=rows)
 
-
-@app.route("/doctor/dashboard")
 @login_required
 @role_required("doctor", "admin")
 def doctor_dashboard():

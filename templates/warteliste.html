@@ -1,28 +1,33 @@
 {% extends "base.html" %}
 {% block content %}
 
-  <h3>offizielle warteliste</h3>
+  <h2 style="margin-top:0;">Offizielle Warteliste</h2>
 
   <table class="table table-striped table-bordered">
     <thead>
       <tr>
-        <th>organ</th>
-        <th>dringlichkeit</th>
-        <th>patient</th>
-        <th>blutgruppe</th>
-        <th>spital</th>
-        <th>seit</th>
+        <th>Vorname</th>
+        <th>Name</th>
+        <th>Arztid</th>
+        <th>Alterskategorie</th>
+        <th>Organ</th>
+        <th>Blutgruppe</th>
+        <th>Dringlichkeit</th>
+        <th>Eingabedatum</th>
       </tr>
     </thead>
+
     <tbody>
       {% for row in waiting %}
         <tr class="{% if row.owner_user_id == current_user.id %}mine{% endif %}">
+          <td>{{ row.vorname }}</td>
+          <td>{{ row.nachname }}</td>
+          <td>{{ row.arztid }}</td>
+          <td>{{ row.alterskategorie }}</td>
           <td>{{ row.organ }}</td>
-          <td>{{ row.dringlichkeit }}</td>
-          <td>{{ row.vorname }} {{ row.nachname }}</td>
           <td>{{ row.blutgruppe }}</td>
-          <td>{{ row.spital }}</td>
-          <td>{{ row.created_at }}</td>
+          <td>{{ row.dringlichkeit }}</td>
+          <td>{{ row.eingabedatum }}</td>
         </tr>
       {% endfor %}
     </tbody>
