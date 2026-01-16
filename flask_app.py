@@ -106,6 +106,31 @@ def webhook():
 
 
 
+@app.route("/doctor/home")
+@login_required
+@role_required("doctor", "admin")
+def doctor_home():
+    return render_template("doctor_home.html")
+
+
+@app.route("/doctor/warteliste")
+@login_required
+@role_required("doctor", "admin")
+def offizielle_warteliste():
+    rows = db_read("""
+        SELECT 
+          ko.krankesorganid, ko.organ, ko.dringlichkeit, ko.created_at,
+          p.patientenid, p.vorname, p.nachname, p.blutgruppe, p.spital,
+          a.user_id AS owner_user_id
+        FROM krankesorgan ko
+        JOIN patienten p ON p.patientenid = ko.patientenid
+        JOIN aerzte a ON a.arztid = p.arztid
+        ORDER BY ko.dringlichkeit DESC, ko.created_at ASC
+    """)
+
+    return render_template("warteliste.html", waiting=rows)
+
+
 @app.route("/doctor/dashboard")
 @login_required
 @role_required("doctor", "admin")
@@ -283,9 +308,8 @@ def login():
         if user:
             login_user(user)
 
-            # Ärzte/Admin direkt ins Arzt-Dashboard
             if getattr(user, "role", None) in ("doctor", "admin"):
-                return redirect(url_for("doctor_dashboard"))
+                return redirect(url_for("doctor_home"))
 
             return redirect(url_for("index"))
 
