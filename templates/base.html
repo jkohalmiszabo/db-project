@@ -15,13 +15,6 @@
     <style>
       body { background-color: #f9f9f9; }
 
-      .brand-subtitle {
-        font-size: 16px;
-        color: #555;
-        margin-top: 8px;
-        line-height: 1.4;
-      }
-
       /* HEADER */
       .header {
         background: white;
@@ -29,20 +22,25 @@
         border-bottom: 1px solid #ddd;
       }
 
-      .<div class="col-sm-6 brand">
-        <div>
-          <img class="logo" src="{{ url_for('static', filename='logo.png') }}" alt="swisstransplant logo">
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+      }
 
-          <div class="brand-title">swisstransplant</div>
+      .brand-title {
+        font-size: 36px;
+        font-weight: 600;
+        color: #b22222;
+        letter-spacing: 1px;
+      }
 
-          {% if not current_user.is_authenticated %}
-            <div class="brand-subtitle">
-              Die offizielle Organtransplantationsseite für Schweizer Ärzt/innen.<br>
-              <strong>Zuteilen. Leben retten.</strong>
-            </div>
-          {% endif %}
-        </div>
-      </div>
+      .brand-subtitle {
+        font-size: 16px;
+        color: #555;
+        margin-top: 8px;
+        line-height: 1.4;
+      }
 
       .top-links {
         margin-top: 25px;
@@ -59,15 +57,8 @@
         transition: all 0.3s ease;
       }
 
-      /* Vor Login: grosses Logo */
-      .header-big .logo {
-        height: 150px;
-      }
-
-      /* Nach Login: normales Logo */
-      .header-small .logo {
-        height: 70px;
-      }
+      .header-big .logo { height: 150px; }
+      .header-small .logo { height: 70px; }
 
       /* BUTTONS IM SWISSTRANSPLANT-STIL */
       .btn,
@@ -84,47 +75,3 @@
       .btn:hover,
       button:hover,
       input[type="submit"]:hover,
-      input[type="button"]:hover {
-          background-color: #8b1a1a !important;
-          border-color: #8b1a1a !important;
-          color: white !important;
-      }
-    </style>
-  </head>
-
-<body>
-
-  <!-- HEADER -->
-  <div class="header {% if current_user.is_authenticated %}header-small{% else %}header-big{% endif %}">
-    <div class="container">
-      <div class="row">
-
-        <div class="col-sm-6 brand">
-          <img class="logo" src="{{ url_for('static', filename='logo.png') }}" alt="swisstransplant logo">
-          <div class="brand-title">swisstransplant</div>
-        </div>
-
-        <div class="col-sm-6 top-links">
-          {% if current_user.is_authenticated %}
-            Hallo, {{ current_user.username }} |
-            <a href="{{ url_for('logout') }}">Logout</a>
-          {% else %}
-            <a href="{{ url_for('login') }}">Login</a>
-            <a href="{{ url_for('register') }}">Registrieren</a>
-          {% endif %}
-        </div>
-
-      </div>
-    </div>
-  </div>
-
-  <!-- CONTENT -->
-  <div class="container" style="margin-top:40px;">
-      {% block content %}{% endblock %}
-  </div>
-
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
-
-</body>
-</html>
