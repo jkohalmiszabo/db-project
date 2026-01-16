@@ -1,4 +1,5 @@
-print ("FLASK APP VERSION 1")
+print("FLASK APP VERSION 1")
+
 from flask import Flask, redirect, render_template, request, url_for, abort
 from dotenv import load_dotenv
 import os
@@ -10,7 +11,6 @@ from auth import login_manager, authenticate, register_user
 from flask_login import login_user, logout_user, login_required, current_user
 from functools import wraps
 import logging
-
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -30,6 +30,7 @@ app.secret_key = "supersecret"
 login_manager.init_app(app)
 login_manager.login_view = "login"
 
+
 def role_required(*roles):
     def decorator(fn):
         @wraps(fn)
@@ -41,6 +42,7 @@ def role_required(*roles):
             return fn(*args, **kwargs)
         return wrapper
     return decorator
+
 
 def calc_alterskategorie(alter_jahre: int) -> int:
     if 0 <= alter_jahre <= 1:
@@ -82,30 +84,28 @@ def kompatible_empfaenger_blutgruppen(spender_bg: str):
     return mapping.get(spender_bg, [])
 
 
-
-# DON'T CHANGEn 
+# DON'T CHANGE
 def is_valid_signature(x_hub_signature, data, private_key):
-    hash_algorithm, github_signature = x_hub_signature.split('=', 1)
+    hash_algorithm, github_signature = x_hub_signature.split("=", 1)
     algorithm = hashlib.__dict__.get(hash_algorithm)
-    encoded_key = bytes(private_key, 'latin-1')
+    encoded_key = bytes(private_key, "latin-1")
     mac = hmac.new(encoded_key, msg=data, digestmod=algorithm)
     return hmac.compare_digest(mac.hexdigest(), github_signature)
 
+
 # DON'T CHANGE
-@app.post('/update_server')
+@app.post("/update_server")
 def webhook():
-    x_hub_signature = request.headers.get('X-Hub-Signature')
+    x_hub_signature = request.headers.get("X-Hub-Signature")
     if is_valid_signature(x_hub_signature, request.data, W_SECRET):
-        repo = git.Repo('./mysite')
+        repo = git.Repo("./mysite")
         origin = repo.remotes.origin
         origin.pull()
-        return 'Updated PythonAnywhere successfully', 200
-    return 'Unathorized', 401
+        return "Updated PythonAnywhere successfully", 200
+    return "Unathorized", 401
 
 
-
-
-
+# ======= NEU: Startseite nach Login (2 Buttons) =======
 @app.route("/doctor/home")
 @login_required
 @role_required("doctor", "admin")
@@ -113,6 +113,7 @@ def doctor_home():
     return render_template("doctor_home.html")
 
 
+# ======= NEU: Offizielle Warteliste (alle) =======
 @app.route("/doctor/warteliste")
 @login_required
 @role_required("doctor", "admin")
@@ -133,13 +134,14 @@ def offizielle_warteliste():
         JOIN aerzte a ON a.arztid = p.arztid
         ORDER BY ko.dringlichkeit DESC, ko.created_at ASC
     """)
-
     return render_template("warteliste.html", waiting=rows)
 
+
+# ======= FIX: Dashboard Route war weg! =======
+@app.route("/doctor/dashboard")
 @login_required
 @role_required("doctor", "admin")
 def doctor_dashboard():
-    # Eigene Patienten + offene Organ-Warteliste anzeigen
     waiting = db_read("""
         SELECT ko.krankesorganid, ko.organ, ko.dringlichkeit,
                p.patientenid, p.vorname, p.nachname, p.blutgruppe, p.spital,
@@ -153,17 +155,13 @@ def doctor_dashboard():
     return render_template("doctor_dashboard.html", waiting=waiting)
 
 
-
-
 @app.route("/doctor/patient/new", methods=["GET", "POST"])
 @login_required
 @role_required("doctor", "admin")
 def new_patient():
-        # Arzt-ID holen (und falls fehlt: automatisch anlegen)
     arzt = db_read("SELECT arztid FROM aerzte WHERE user_id=%s", (current_user.id,))
 
     if not arzt:
-        # Auto-Profil erstellen (für alte Accounts)
         db_write(
             "INSERT INTO aerzte (user_id, vorname, nachname) VALUES (%s, %s, %s)",
             (current_user.id, current_user.username, "Auto")
@@ -172,11 +170,9 @@ def new_patient():
 
     arztid = arzt[0]["arztid"]
 
-
     if request.method == "GET":
         return render_template("patient_new.html")
 
-    # Patient speichern
     telefon = request.form["telefonnummer"]
     spital = request.form["spital"]
     vorname = request.form["vorname"]
@@ -192,10 +188,8 @@ def new_patient():
         VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
     """, (arztid, telefon, spital, vorname, nachname, gewicht, groesse, blutgruppe, alterskategorie, alter_jahre))
 
-    # neueste patientenid holen
     pid = db_read("SELECT patientenid FROM patienten WHERE telefonnummer=%s", (telefon,))[0]["patientenid"]
 
-    # krankes Organ/Warteliste speichern
     organ = request.form["organ"]
     dringlichkeit = request.form["dringlichkeit"]
     db_write("""
@@ -233,7 +227,6 @@ def new_deceased():
         ORDER BY verstorbenenid DESC LIMIT 1
     """)[0]["verstorbenenid"]
 
-    # Mehrere Organe aus Formular (Checkboxen)
     organs = request.form.getlist("organs")
     for organ in organs:
         db_write("INSERT INTO spenderorgane (verstorbenenid, organ) VALUES (%s,%s)", (vid, organ))
@@ -251,7 +244,6 @@ def allocate():
     if request.method == "POST":
         did_run = True
 
-        # 1) Nur Spenderorgane, die noch nicht vorgeschlagen/zugeteilt wurden
         spender = db_read("""
             SELECT so.spenderorganid, so.organ,
                    v.blutgruppe,
@@ -261,7 +253,7 @@ def allocate():
             LEFT JOIN zuteilung z ON z.spenderorganid = so.spenderorganid
                                  AND z.status IN ('proposed','confirmed')
             WHERE z.zuteilungid IS NULL
-        """, ())
+        """)
 
         for s in spender:
             empfaenger_bgs = kompatible_empfaenger_blutgruppen(s["blutgruppe"])
@@ -270,7 +262,6 @@ def allocate():
 
             placeholders = ",".join(["%s"] * len(empfaenger_bgs))
 
-            # 2) Nur Wartelisten-Einträge, die noch nicht vorgeschlagen/zugeteilt wurden
             match = db_read(f"""
                 SELECT ko.krankesorganid, ko.dringlichkeit, ko.created_at,
                        p.patientenid, p.vorname, p.nachname, p.spital, p.blutgruppe
@@ -289,25 +280,21 @@ def allocate():
             """, tuple([s["organ"]] + empfaenger_bgs + [s["alterskategorie"]]))
 
             if match:
-                # 3) Vorschlag speichern, damit er nicht nochmal auftaucht
                 db_write(
                     "INSERT INTO zuteilung (spenderorganid, krankesorganid, status) VALUES (%s, %s, 'proposed')",
                     (s["spenderorganid"], match[0]["krankesorganid"])
                 )
-
                 suggestions.append({"spender": s, "match": match[0]})
 
     return render_template("allocate.html", suggestions=suggestions, did_run=did_run)
+
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
     error = None
 
     if request.method == "POST":
-        user = authenticate(
-            request.form["username"],
-            request.form["password"]
-        )
+        user = authenticate(request.form["username"], request.form["password"])
 
         if user:
             login_user(user)
@@ -343,7 +330,6 @@ def register():
         spital = request.form.get("spital") or None
         telefonnummer = request.form.get("telefonnummer") or None
 
-
         ok = register_user(username, password, vorname, nachname, spital, telefonnummer)
 
         if ok:
@@ -362,6 +348,7 @@ def register():
         footer_link_label="Einloggen"
     )
 
+
 @app.route("/logout")
 @login_required
 def logout():
@@ -369,24 +356,21 @@ def logout():
     return redirect(url_for("index"))
 
 
-
-# App routes
 @app.route("/", methods=["GET", "POST"])
 @login_required
 def index():
     if getattr(current_user, "role", None) in ("doctor", "admin"):
         return redirect(url_for("doctor_dashboard"))
-    
-    # GET
+
     if request.method == "GET":
         todos = db_read("SELECT id, content, due FROM todos WHERE user_id=%s ORDER BY due", (current_user.id,))
         return render_template("main_page.html", todos=todos)
 
-    # POST
     content = request.form["contents"]
     due = request.form["due_at"]
-    db_write("INSERT INTO todos (user_id, content, due) VALUES (%s, %s, %s)", (current_user.id, content, due, ))
+    db_write("INSERT INTO todos (user_id, content, due) VALUES (%s, %s, %s)", (current_user.id, content, due,))
     return redirect(url_for("index"))
+
 
 @app.post("/complete")
 @login_required
@@ -395,6 +379,7 @@ def complete():
     db_write("DELETE FROM todos WHERE user_id=%s AND id=%s", (current_user.id, todo_id,))
     return redirect(url_for("index"))
 
+
 @app.route("/users", methods=["GET"])
 @login_required
 def users():
@@ -402,30 +387,25 @@ def users():
     return render_template("users.html", users=users_list)
 
 
-
 @app.route("/dbexplorer", methods=["GET", "POST"])
 @login_required
 def dbexplorer():
-    # Alle Tabellennamen holen
     tables_raw = db_read("SHOW TABLES")
-    all_tables = [next(iter(row.values())) for row in tables_raw]  # erste Spalte jedes Dicts
+    all_tables = [next(iter(row.values())) for row in tables_raw]
 
     selected_tables = []
-    limit = 50  # Default
+    limit = 50
     results = {}
 
     if request.method == "POST":
-        # Gewählte Tabellen einsammeln
         selected_tables = request.form.getlist("tables")
 
-        # Limit aus Formular lesen
         limit_str = request.form.get("limit") or ""
         try:
             limit = int(limit_str)
         except ValueError:
             limit = 50
 
-        # Limit ein bisschen absichern
         if limit < 1:
             limit = 1
         elif limit > 1000:
@@ -433,9 +413,8 @@ def dbexplorer():
 
         allowed = set(all_tables)
 
-        # Pro gewählter Tabelle Daten abfragen
         for table in selected_tables:
-            if table in allowed:  # einfache Absicherung gegen SQL-Injection
+            if table in allowed:
                 rows = db_read(f"SELECT * FROM `{table}` LIMIT %s", (limit,))
                 results[table] = rows
 
@@ -447,6 +426,6 @@ def dbexplorer():
         limit=limit,
     )
 
-# Diese zwei Zeilen MÜSSEN ganz am Ende stehen
+
 if __name__ == "__main__":
     app.run()
