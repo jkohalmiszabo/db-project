@@ -15,6 +15,7 @@
     <style>
       body { background-color: #f9f9f9; }
 
+      /* HEADER */
       .header {
         background: white;
         padding: 20px 0;
@@ -25,10 +26,6 @@
         display: flex;
         align-items: center;
         gap: 20px;
-      }
-
-      .brand img {
-        height: 80px;
       }
 
       .brand-title {
@@ -48,13 +45,27 @@
         font-weight: 500;
       }
 
-      /* swisstransplant button style */
+      /* LOGO GRÖSSE */
+      .logo {
+        transition: all 0.3s ease;
+      }
 
+      /* Vor Login: grosses Logo */
+      .header-big .logo {
+        height: 120px;
+      }
+
+      /* Nach Login: normales Logo */
+      .header-small .logo {
+        height: 70px;
+      }
+
+      /* BUTTONS IM SWISSTRANSPLANT-STIL */
       .btn,
       button,
       input[type="submit"],
       input[type="button"] {
-          background-color: #b22222 !important;   /* Klinik-Rot */
+          background-color: #b22222 !important;
           border-color: #b22222 !important;
           color: white !important;
           font-weight: 600;
@@ -69,21 +80,18 @@
           border-color: #8b1a1a !important;
           color: white !important;
       }
-
-
-
     </style>
   </head>
 
 <body>
 
   <!-- HEADER -->
-  <div class="header">
+  <div class="header {% if current_user.is_authenticated %}header-small{% else %}header-big{% endif %}">
     <div class="container">
       <div class="row">
 
         <div class="col-sm-6 brand">
-          <img src="{{ url_for('static', filename='logo.png') }}" alt="swisstransplant logo">
+          <img class="logo" src="{{ url_for('static', filename='logo.png') }}" alt="swisstransplant logo">
           <div class="brand-title">swisstransplant</div>
         </div>
 
