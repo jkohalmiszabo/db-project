@@ -65,13 +65,64 @@
       button,
       input[type="submit"],
       input[type="button"] {
-          background-color: #b22222 !important;
-          border-color: #b22222 !important;
-          color: white !important;
-          font-weight: 600;
-          border-radius: 6px;
+        background-color: #b22222 !important;
+        border-color: #b22222 !important;
+        color: white !important;
+        font-weight: 600;
+        border-radius: 6px;
       }
 
       .btn:hover,
       button:hover,
       input[type="submit"]:hover,
+      input[type="button"]:hover {
+        background-color: #8b1a1a !important;
+        border-color: #8b1a1a !important;
+        color: white !important;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- HEADER -->
+    <div class="header {% if current_user.is_authenticated %}header-small{% else %}header-big{% endif %}">
+      <div class="container">
+        <div class="row">
+
+          <div class="col-sm-6 brand">
+            <div>
+              <img class="logo" src="{{ url_for('static', filename='logo.png') }}" alt="swisstransplant logo">
+              <div class="brand-title">swisstransplant</div>
+
+              {% if not current_user.is_authenticated %}
+                <div class="brand-subtitle">
+                  die offizielle Organtransplantationsseite für Schweizer Ärzt/innen.<br>
+                  <strong>Zuteilen. Leben retten.</strong>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="col-sm-6 top-links">
+            {% if current_user.is_authenticated %}
+              Hallo, {{ current_user.username }} |
+              <a href="{{ url_for('logout') }}">Logout</a>
+            {% else %}
+              <a href="{{ url_for('login') }}">Login</a>
+              <a href="{{ url_for('register') }}">Registrieren</a>
+            {% endif %}
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="container" style="margin-top:40px;">
+      {% block content %}{% endblock %}
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+  </body>
+</html>
