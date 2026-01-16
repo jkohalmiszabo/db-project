@@ -22,18 +22,20 @@
         border-bottom: 1px solid #ddd;
       }
 
-      .brand {
-        display: flex;
-        align-items: center;
-        gap: 20px;
-      }
+      .<div class="col-sm-6 brand">
+        <div>
+          <img class="logo" src="{{ url_for('static', filename='logo.png') }}" alt="swisstransplant logo">
 
-      .brand-title {
-        font-size: 36px;
-        font-weight: 600;
-        color: #b22222;
-        letter-spacing: 1px;
-      }
+          <div class="brand-title">swisstransplant</div>
+
+          {% if not current_user.is_authenticated %}
+            <div class="brand-subtitle">
+              die offizielle Organtransplantationsseite für Schweizer Ärzt/innen.<br>
+              <strong>Zuteilen. Leben retten.</strong>
+            </div>
+          {% endif %}
+        </div>
+      </div>
 
       .top-links {
         margin-top: 25px;
