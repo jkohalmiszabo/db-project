@@ -134,7 +134,10 @@ def offizielle_warteliste():
         JOIN patienten p ON p.patientenid = ko.patientenid
         JOIN aerzte a ON a.arztid = p.arztid
         ORDER BY effektive_dringlichkeit DESC, ko.created_at ASC
-    """)
+
+        LEFT JOIN zuteilung z ON z.krankesorganid = ko.krankesorganid
+        WHERE z.zuteilungid IS NULL
+
     return render_template("warteliste.html", waiting=rows)
 
 
@@ -153,6 +156,10 @@ def doctor_dashboard():
         WHERE a.user_id = %s
         ORDER BY effektive_dringlichkeit DESC,  ko.created_at ASC
     """, (current_user.id,))
+        LEFT JOIN zuteilung z ON z.krankesorganid = ko.krankesorganid
+        WHERE a.user_id = %s
+            AND z.zuteilungid IS NULL
+
     return render_template("doctor_dashboard.html", waiting=waiting)
 
 
@@ -366,6 +373,18 @@ def allocate():
                     (s["spenderorganid"], match[0]["krankesorganid"])
                 )
                 suggestions.append({"spender": s, "match": match[0]})
+                # markiere als zugeteilt
+                db_write("UPDATE spenderorgane SET status='allocated' WHERE spenderorganid=%s", (s["spenderorganid"],))
+                db_write("UPDATE verstorbener v JOIN spenderorgane so ON so.verstorbenenid=v.verstorbenenid SET v.status='allocated' WHERE so.spenderorganid=%s", (s["spenderorganid"],))
+
+                db_write("UPDATE krankesorgan SET status='allocated' WHERE krankesorganid=%s", (match[0]["krankesorganid"],))
+                db_write("""
+                UPDATE patienten p
+                JOIN krankesorgan ko ON ko.patientenid=p.patientenid
+                SET p.status='inactive'
+                WHERE ko.krankesorganid=%s
+                """, (match[0]["krankesorganid"],))
+
 
             auto_run = (request.args.get("run") == "1")
             return render_template("allocate.html", suggestions=suggestions, did_run=did_run, auto_run=auto_run)
