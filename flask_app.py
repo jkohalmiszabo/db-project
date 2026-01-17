@@ -85,12 +85,16 @@ def role_required(*roles):
 def run_allocation_24h():
     suggestions = []
 
+    # Nur Spenderorgane der letzten 24h, die noch nicht proposed/confirmed sind
     spender = db_read("""
         SELECT
             so.spenderorganid,
             so.organ,
             v.blutgruppe,
-            v.alterskategorie
+            v.alterskategorie,
+            v.spital AS spender_spital,
+            v.telefonnummerangehorige AS spender_telefon,
+            v.created_at AS spender_eingabedatum
         FROM spenderorgane so
         JOIN verstorbener v ON v.verstorbenenid = so.verstorbenenid
         LEFT JOIN zuteilung z ON z.spenderorganid = so.spenderorganid
@@ -106,11 +110,22 @@ def run_allocation_24h():
 
         placeholders = ",".join(["%s"] * len(empfaenger_bgs))
 
+        # Bestes Match aus offizieller Warteliste (nur offene, gleicher Organ, kompatible BG, gleiche Alterskategorie)
         match = db_read(f"""
             SELECT
-                ko.krankesorganid
+                ko.krankesorganid,
+                ko.dringlichkeit,
+                ko.created_at AS empfaenger_eingabedatum,
+                p.patientenid,
+                p.vorname,
+                p.nachname,
+                p.spital,
+                p.blutgruppe,
+                p.telefonnummer AS patient_telefon,
+                a.telefonnummer AS arzt_telefon
             FROM krankesorgan ko
             JOIN patienten p ON p.patientenid = ko.patientenid
+            JOIN aerzte a ON a.arztid = p.arztid
             LEFT JOIN zuteilung z ON z.krankesorganid = ko.krankesorganid
                                  AND z.status IN ('proposed','confirmed')
             WHERE z.zuteilungid IS NULL
@@ -124,14 +139,16 @@ def run_allocation_24h():
         """, tuple([s["organ"]] + empfaenger_bgs + [s["alterskategorie"]]))
 
         if match:
+            # Vorschlag speichern (nur wenn noch nicht vorhanden)
             db_write("""
                 INSERT INTO zuteilung (spenderorganid, krankesorganid, status)
                 VALUES (%s, %s, 'proposed')
             """, (s["spenderorganid"], match[0]["krankesorganid"]))
 
+            # GENAU die Struktur, die allocate.html erwartet:
             suggestions.append({
-                "spenderorganid": s["spenderorganid"],
-                "krankesorganid": match[0]["krankesorganid"]
+                "spender": s,
+                "match": match[0]
             })
 
     return suggestions
