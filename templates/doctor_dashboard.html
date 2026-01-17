@@ -59,7 +59,10 @@
           <td>{{ row.blutgruppe }}</td>
           <td>{{ row.krankesorganid }}</td>
           <td>{{ row.organ }}</td>
-          <td>{{ row.effektive_dringlichkeit }}</td>
+          <td>
+            {{ row.dringlichkeit }} + {{ row.effektive_dringlichkeit - row.dringlichkeit }}
+          </td>
+
           <td>{{ row.eingabedatum }}</td>
 
         </tr>

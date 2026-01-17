@@ -31,7 +31,10 @@
           <td>{{ row.alterskategorie }}</td>
           <td>{{ row.organ }}</td>
           <td>{{ row.blutgruppe }}</td>
-          <td>{{ row.dringlichkeit }}</td>
+          <td>
+            {{ row.dringlichkeit }} + {{ row.effektive_dringlichkeit - row.dringlichkeit }}
+          </td>
+
           <td>{{ row.eingabedatum }}</td>
         </tr>
       {% endfor %}

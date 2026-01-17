@@ -126,15 +126,17 @@ def offizielle_warteliste():
           ko.organ,
           p.blutgruppe,
           ko.dringlichkeit,
+          LEAST(10, ko.dringlichkeit + FLOOR(TIMESTAMPDIFF(DAY, ko.created_at, NOW())/30)) AS effektive_dringlichkeit,
           ko.created_at AS eingabedatum,
           p.arztid,
           a.user_id AS owner_user_id
         FROM krankesorgan ko
         JOIN patienten p ON p.patientenid = ko.patientenid
         JOIN aerzte a ON a.arztid = p.arztid
-        ORDER BY ko.dringlichkeit DESC, ko.created_at ASC
+        ORDER BY effektive_dringlichkeit DESC, ko.created_at ASC
     """)
     return render_template("warteliste.html", waiting=rows)
+
 
 
 # ======= FIX: Dashboard Route war weg! =======
