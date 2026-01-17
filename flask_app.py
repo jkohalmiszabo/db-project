@@ -317,7 +317,6 @@ def new_deceased():
     return redirect(url_for("allocate", run=1))
 
 
-
 @app.route("/doctor/allocate", methods=["GET", "POST"])
 @login_required
 @role_required("doctor", "admin")
@@ -325,25 +324,26 @@ def allocate():
     suggestions = []
     did_run = False
 
+    # Auto-Run, wenn du von new_deceased mit ?run=1 kommst
     run_now = (request.method == "POST") or (request.args.get("run") == "1")
 
     if run_now:
         did_run = True
 
+        # Nur Spenderorgane, die noch nicht proposed/confirmed sind
         spender = db_read("""
-            SELECT 
+            SELECT
                 so.spenderorganid,
                 so.organ,
                 v.blutgruppe,
                 v.alterskategorie,
                 v.spital AS spender_spital,
                 v.telefonnummerangehorige AS spender_telefon,
-                v.created_at AS spender_eingabedatum
+                NOW() AS spender_eingabedatum
             FROM spenderorgane so
             JOIN verstorbener v ON v.verstorbenenid = so.verstorbenenid
-            LEFT JOIN zuteilung z 
-                ON z.spenderorganid = so.spenderorganid
-                AND z.status IN ('proposed','confirmed')
+            LEFT JOIN zuteilung z ON z.spenderorganid = so.spenderorganid
+                                 AND z.status IN ('proposed','confirmed')
             WHERE z.zuteilungid IS NULL
         """)
 
@@ -354,8 +354,9 @@ def allocate():
 
             placeholders = ",".join(["%s"] * len(empfaenger_bgs))
 
+            # Bestes Match aus OFFIZIELLER Warteliste (nur open, gleicher Organ, kompatible BG, gleiche Alterskategorie)
             match = db_read(f"""
-                SELECT 
+                SELECT
                     ko.krankesorganid,
                     ko.dringlichkeit,
                     ko.created_at AS empfaenger_eingabedatum,
@@ -369,9 +370,8 @@ def allocate():
                 FROM krankesorgan ko
                 JOIN patienten p ON p.patientenid = ko.patientenid
                 JOIN aerzte a ON a.arztid = p.arztid
-                LEFT JOIN zuteilung z 
-                    ON z.krankesorganid = ko.krankesorganid
-                    AND z.status IN ('proposed','confirmed')
+                LEFT JOIN zuteilung z ON z.krankesorganid = ko.krankesorganid
+                                     AND z.status IN ('proposed','confirmed')
                 WHERE z.zuteilungid IS NULL
                   AND ko.organ = %s
                   AND p.blutgruppe IN ({placeholders})
@@ -383,45 +383,17 @@ def allocate():
             """, tuple([s["organ"]] + empfaenger_bgs + [s["alterskategorie"]]))
 
             if match:
-                # Zuteilung speichern
-                db_write(
-                    "INSERT INTO zuteilung (spenderorganid, krankesorganid, status) VALUES (%s, %s, 'proposed')",
-                    (s["spenderorganid"], match[0]["krankesorganid"])
-                )
-
-                # Spenderorgan als zugeteilt markieren
-                db_write(
-                    "UPDATE spenderorgane SET status='allocated' WHERE spenderorganid=%s",
-                    (s["spenderorganid"],)
-                )
-
-                # Empfänger aus Warteliste entfernen
-                db_write(
-                    "UPDATE krankesorgan SET status='allocated' WHERE krankesorganid=%s",
-                    (match[0]["krankesorganid"],)
-                )
-
-                # Patient deaktivieren
+                # Vorschlag speichern
                 db_write("""
-                    UPDATE patienten p
-                    JOIN krankesorgan ko ON ko.patientenid = p.patientenid
-                    SET p.status = 'inactive'
-                    WHERE ko.krankesorganid = %s
-                """, (match[0]["krankesorganid"],))
+                    INSERT INTO zuteilung (spenderorganid, krankesorganid, status)
+                    VALUES (%s, %s, 'proposed')
+                """, (s["spenderorganid"], match[0]["krankesorganid"]))
 
-                suggestions.append({
-                    "spender": s,
-                    "match": match[0]
-                })
+                suggestions.append({"spender": s, "match": match[0]})
 
     auto_run = (request.args.get("run") == "1")
+    return render_template("allocate.html", suggestions=suggestions, did_run=did_run, auto_run=auto_run)
 
-    return render_template(
-        "allocate.html",
-        suggestions=suggestions,
-        did_run=did_run,
-        auto_run=auto_run
-    )
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
