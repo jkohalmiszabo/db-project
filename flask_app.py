@@ -148,7 +148,7 @@ def doctor_dashboard():
         JOIN patienten p ON p.patientenid = ko.patientenid
         JOIN aerzte a ON a.arztid = p.arztid
         WHERE a.user_id = %s
-        ORDER BY ko.dringlichkeit DESC, ko.created_at DESC
+        ORDER BY ko.dringlichkeit DESC,  ko.created_at ASC
     """, (current_user.id,))
     return render_template("doctor_dashboard.html", waiting=waiting)
 
