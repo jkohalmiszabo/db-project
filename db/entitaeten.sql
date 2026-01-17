@@ -2,12 +2,10 @@ CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(250) NOT NULL UNIQUE,
     password VARCHAR(250) NOT NULL,
-    role ENUM('pending','doctor','admin') DEFAULT 'pending'
+    role ENUM('doctor','admin') DEFAULT 'doctor'
 );
 
-#pending=arzt, wartet bis zertifikat geprüft wird
-#doctor, darf patienten erfassen
-#admin darf pending aerzte freischalten
+
 
 CREATE TABLE aerzte (
     arztid INT AUTO_INCREMENT PRIMARY KEY,

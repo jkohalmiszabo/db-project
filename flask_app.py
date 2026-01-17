@@ -31,19 +31,6 @@ login_manager.init_app(app)
 login_manager.login_view = "login"
 
 
-def role_required(*roles):
-    def decorator(fn):
-        @wraps(fn)
-        def wrapper(*args, **kwargs):
-            if not current_user.is_authenticated:
-                return login_manager.unauthorized()
-            if getattr(current_user, "role", None) not in roles:
-                abort(403)
-            return fn(*args, **kwargs)
-        return wrapper
-    return decorator
-
-
 def calc_alterskategorie(alter_jahre: int) -> int:
     if 0 <= alter_jahre <= 1:
         return 1
@@ -83,6 +70,19 @@ def kompatible_empfaenger_blutgruppen(spender_bg: str):
     }
     return mapping.get(spender_bg, [])
 
+def role_required(*roles):
+    def decorator(fn):
+        @wraps(fn)
+        def wrapper(*args, **kwargs):
+            if not current_user.is_authenticated:
+                return login_manager.unauthorized()
+            if getattr(current_user, "role", None) not in roles:
+                abort(403)
+            return fn(*args, **kwargs)
+        return wrapper
+    return decorator
+ 
+
 
 # DON'T CHANGE
 def is_valid_signature(x_hub_signature, data, private_key):
@@ -108,14 +108,12 @@ def webhook():
 # ======= NEU: Startseite nach Login (2 Buttons) =======
 @app.route("/doctor/home")
 @login_required
-@role_required("doctor", "admin")
 def doctor_home():
     return render_template("doctor_home.html")
 
 
 @app.route("/doctor/warteliste")
 @login_required
-@role_required("doctor", "admin")
 def offizielle_warteliste():
     rows = db_read("""
         SELECT 
@@ -143,7 +141,6 @@ def offizielle_warteliste():
 # ======= FIX: Dashboard Route war weg! =======
 @app.route("/doctor/dashboard")
 @login_required
-@role_required("doctor", "admin")
 def doctor_dashboard():
     waiting = db_read("""
         SELECT 
@@ -178,7 +175,6 @@ def doctor_dashboard():
 
 @app.route("/doctor/warteliste/edit/<int:krankesorganid>", methods=["GET", "POST"])
 @login_required
-@role_required("doctor", "admin")
 def edit_waitlist_entry(krankesorganid):
     # Datensatz holen + Besitzer prüfen (nur eigener Eintrag, ausser admin)
     row = db_read("""
@@ -240,7 +236,6 @@ def edit_waitlist_entry(krankesorganid):
 
 @app.route("/doctor/patient/new", methods=["GET", "POST"])
 @login_required
-@role_required("doctor", "admin")
 def new_patient():
     arzt = db_read("SELECT arztid FROM aerzte WHERE user_id=%s", (current_user.id,))
 
@@ -285,7 +280,6 @@ def new_patient():
 
 @app.route("/doctor/deceased/new", methods=["GET", "POST"])
 @login_required
-@role_required("doctor", "admin")
 def new_deceased():
     if request.method == "GET":
         return render_template("deceased_new.html")
@@ -319,7 +313,6 @@ def new_deceased():
 
 @app.route("/doctor/allocate", methods=["GET", "POST"])
 @login_required
-@role_required("doctor", "admin")
 def allocate():
     suggestions = []
     did_run = False
@@ -405,10 +398,8 @@ def login():
         if user:
             login_user(user)
 
-            if getattr(user, "role", None) in ("doctor", "admin"):
-                return redirect(url_for("doctor_home"))
-
-            return redirect(url_for("index"))
+            # Admin und Doctor gehen beide nach doctor_home
+            return redirect(url_for("doctor_home"))
 
         error = "Benutzername oder Passwort ist falsch."
 
@@ -422,7 +413,6 @@ def login():
         footer_link_url=url_for("register"),
         footer_link_label="Registrieren"
     )
-
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -462,32 +452,15 @@ def logout():
     return redirect(url_for("index"))
 
 
-@app.route("/", methods=["GET", "POST"])
+@app.route("/")
 @login_required
 def index():
-    if getattr(current_user, "role", None) in ("doctor", "admin"):
-        return redirect(url_for("doctor_home"))
-
-    if request.method == "GET":
-        todos = db_read("SELECT id, content, due FROM todos WHERE user_id=%s ORDER BY due", (current_user.id,))
-        return render_template("main_page.html", todos=todos)
-
-    content = request.form["contents"]
-    due = request.form["due_at"]
-    db_write("INSERT INTO todos (user_id, content, due) VALUES (%s, %s, %s)", (current_user.id, content, due,))
-    return redirect(url_for("index"))
-
-
-@app.post("/complete")
-@login_required
-def complete():
-    todo_id = request.form.get("id")
-    db_write("DELETE FROM todos WHERE user_id=%s AND id=%s", (current_user.id, todo_id,))
-    return redirect(url_for("index"))
+    return redirect(url_for("doctor_home"))
 
 
 @app.route("/users", methods=["GET"])
 @login_required
+@role_required("admin")
 def users():
     users_list = db_read("SELECT username FROM users ORDER BY username", ())
     return render_template("users.html", users=users_list)
@@ -495,6 +468,7 @@ def users():
 
 @app.route("/dbexplorer", methods=["GET", "POST"])
 @login_required
+@role_required("admin")
 def dbexplorer():
     tables_raw = db_read("SHOW TABLES")
     all_tables = [next(iter(row.values())) for row in tables_raw]
