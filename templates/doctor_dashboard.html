@@ -26,7 +26,7 @@
           <th>Alter</th>
           <th>Alterskategorie</th>
           <th>Blutgruppe</th>
-          <th>Organ-ID/th>
+          <th>Organ-ID</th>
           <th>Organ</th>
           <th>Dringlichkeit</th>
           <th>Eingabedatum</th>
@@ -34,16 +34,27 @@
         </tr>
       </thead>
       <tbody>
-        {% for w in waiting %}
+        {% for row in waiting %}
         <tr>
-          <td>{{ w.organ }}</td>
-          <td><span class="badge bg-danger">{{ w.dringlichkeit }}</span></td>
-          <td>{{ w.vorname }} {{ w.nachname }}</td>
-          <td>{{ w.blutgruppe }}</td>
-          <td>{{ w.spital }}</td>
+          <td>{{ row.patientenid }}</td>
+          <td>{{ row.vorname }}</td>
+          <td>{{ row.nachname }}</td>
+          <td>{{ row.arztid }}</td>
+          <td>{{ row.spital }}</td>
+          <td>{{ row.telefonnummer }}</td>
+          <td>{{ row.gewicht }}</td>
+          <td>{{ row.groesse }}</td>
+          <td>{{ row.alter_jahre }}</td>
+          <td>{{ row.alterskategorie }}</td>
+          <td>{{ row.blutgruppe }}</td>
+          <td>{{ row.krankesorganid }}</td>
+          <td>{{ row.organ }}</td>
+          <td>{{ row.dringlichkeit }}</td>
+          <td>{{ row.eingabedatum }}</td>
         </tr>
         {% endfor %}
       </tbody>
+
     </table>
   </div>
   {% else %}
