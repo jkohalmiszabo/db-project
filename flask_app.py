@@ -294,7 +294,7 @@ def new_deceased():
     for organ in organs:
         db_write("INSERT INTO spenderorgane (verstorbenenid, organ) VALUES (%s,%s)", (vid, organ))
 
-    return redirect(url_for("allocate", run=1))
+    rreturn redirect(url_for("allocate", run=1))
 
 
 
