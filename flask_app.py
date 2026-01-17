@@ -113,7 +113,6 @@ def doctor_home():
     return render_template("doctor_home.html")
 
 
-# ======= NEU: Offizielle Warteliste (alle) =======
 @app.route("/doctor/warteliste")
 @login_required
 @role_required("doctor", "admin")
@@ -133,13 +132,12 @@ def offizielle_warteliste():
         FROM krankesorgan ko
         JOIN patienten p ON p.patientenid = ko.patientenid
         JOIN aerzte a ON a.arztid = p.arztid
-        ORDER BY effektive_dringlichkeit DESC, ko.created_at ASC
-
         LEFT JOIN zuteilung z ON z.krankesorganid = ko.krankesorganid
+                             AND z.status IN ('proposed','confirmed')
         WHERE z.zuteilungid IS NULL
-
+        ORDER BY effektive_dringlichkeit DESC, ko.created_at ASC
+    """)
     return render_template("warteliste.html", waiting=rows)
-
 
 
 # ======= FIX: Dashboard Route war weg! =======
@@ -148,19 +146,34 @@ def offizielle_warteliste():
 @role_required("doctor", "admin")
 def doctor_dashboard():
     waiting = db_read("""
-        SELECT p.patientenid,p.vorname, p.nachname, p.arztid, p.spital, p.telefonnummer, p.gewicht, p.groesse,p.alter_jahre, p.alterskategorie, p.blutgruppe, ko.krankesorganid,  ko.organ,
-         ko.dringlichkeit, LEAST(10, ko.dringlichkeit + FLOOR(TIMESTAMPDIFF(DAY, ko.created_at, NOW())/30)) AS effektive_dringlichkeit, ko.created_at AS eingabedatum
+        SELECT 
+          p.patientenid,
+          p.vorname,
+          p.nachname,
+          p.arztid,
+          p.spital,
+          p.telefonnummer,
+          p.gewicht,
+          p.groesse,
+          p.alter_jahre,
+          p.alterskategorie,
+          p.blutgruppe,
+          ko.krankesorganid,
+          ko.organ,
+          ko.dringlichkeit,
+          LEAST(10, ko.dringlichkeit + FLOOR(TIMESTAMPDIFF(DAY, ko.created_at, NOW())/30)) AS effektive_dringlichkeit,
+          ko.created_at AS eingabedatum
         FROM krankesorgan ko
         JOIN patienten p ON p.patientenid = ko.patientenid
         JOIN aerzte a ON a.arztid = p.arztid
-        WHERE a.user_id = %s
-        ORDER BY effektive_dringlichkeit DESC,  ko.created_at ASC
-    """, (current_user.id,))
         LEFT JOIN zuteilung z ON z.krankesorganid = ko.krankesorganid
+                             AND z.status IN ('proposed','confirmed')
         WHERE a.user_id = %s
-            AND z.zuteilungid IS NULL
-
+          AND z.zuteilungid IS NULL
+        ORDER BY effektive_dringlichkeit DESC, ko.created_at ASC
+    """, (current_user.id,))
     return render_template("doctor_dashboard.html", waiting=waiting)
+
 
 
 @app.route("/doctor/warteliste/edit/<int:krankesorganid>", methods=["GET", "POST"])
@@ -386,8 +399,8 @@ def allocate():
                 """, (match[0]["krankesorganid"],))
 
 
-            auto_run = (request.args.get("run") == "1")
-            return render_template("allocate.html", suggestions=suggestions, did_run=did_run, auto_run=auto_run)
+    auto_run = (request.args.get("run") == "1")
+    return render_template("allocate.html", suggestions=suggestions, did_run=did_run, auto_run=auto_run)
 
 
 @app.route("/login", methods=["GET", "POST"])
