@@ -48,6 +48,12 @@
         line-height: 1.4;
       }
 
+      .subtitle-line {
+        white-space: nowrap;
+        display: inline-block;
+      }
+
+
       .top-links {
         margin-top: 30px;
         text-align: right;
@@ -134,9 +140,12 @@
 
               {% if not current_user.is_authenticated %}
                 <div class="brand-subtitle">
-                  Die offizielle Organtransplantationsseite für Schweizer Ärzt/innen.<br>
+                  <span class="subtitle-line">
+                    Die offizielle Organtransplantationsseite für Schweizer Ärzt/innen.
+                  </span><br>
                   <strong>Zuteilen. Leben retten.</strong>
                 </div>
+
               {% endif %}
             </div>
           </div>
