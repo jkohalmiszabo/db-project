@@ -317,15 +317,19 @@ def new_patient():
     alterskategorie = calc_alterskategorie(alter_jahre)
 
     db_write("""
-            INSERT INTO patienten (arztid, telefonnummer, spital, vorname, nachname, gewicht, groesse, blutgruppe, alterskategorie, alter_jahre)
-            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-        """, (arztid, telefon, spital, vorname, nachname, gewicht, groesse, blutgruppe, alterskategorie, alter_jahre))
+        INSERT INTO patienten (arztid, telefonnummer, spital, vorname, nachname, gewicht, groesse, blutgruppe, alterskategorie, alter_jahre)
+        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+    """, (arztid, telefon, spital, vorname, nachname, gewicht, groesse, blutgruppe, alterskategorie, alter_jahre))
 
-        pid = db_read("SELECT patientenid FROM patienten WHERE telefonnummer=%s", (telefon,))[0]["patientenid"]
+    pid = db_read(
+        "SELECT patientenid FROM patienten WHERE telefonnummer=%s",
+        (telefon,)
+    )[0]["patientenid"]
 
-        organ = request.form["organ"]
-        dringlichkeit = request.form["dringlichkeit"]
-        db_write("""
+    organ = request.form["organ"]
+    dringlichkeit = request.form["dringlichkeit"]
+
+    db_write("""
         INSERT INTO krankesorgan (patientenid, organ, dringlichkeit)
         VALUES (%s,%s,%s)
     """, (pid, organ, dringlichkeit))
@@ -334,6 +338,7 @@ def new_patient():
     run_allocation_24h()
 
     return redirect(url_for("doctor_dashboard"))
+
 
 
 
