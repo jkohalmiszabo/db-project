@@ -463,8 +463,8 @@ def index():
 @login_required
 @role_required("admin")
 def users():
-    users_list = db_read("SELECT username FROM users ORDER BY username", ())
-    return render_template("users.html", users=users_list)
+    return "USERS ROUTE OK ✅", 200
+
 
 
 @app.route("/dbexplorer", methods=["GET", "POST"])
