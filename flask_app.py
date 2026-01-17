@@ -314,14 +314,18 @@ def allocate():
 
         spender = db_read("""
             SELECT so.spenderorganid, so.organ,
-                   v.blutgruppe,
-                   v.alterskategorie
+                v.blutgruppe,
+                v.alterskategorie,
+                v.spital AS spender_spital,
+                v.telefonnummerangehorige AS spender_telefon,
+                NOW() AS spender_eingabedatum
             FROM spenderorgane so
             JOIN verstorbener v ON v.verstorbenenid = so.verstorbenenid
             LEFT JOIN zuteilung z ON z.spenderorganid = so.spenderorganid
-                                 AND z.status IN ('proposed','confirmed')
+                                AND z.status IN ('proposed','confirmed')
             WHERE z.zuteilungid IS NULL
         """)
+
 
         for s in spender:
             empfaenger_bgs = kompatible_empfaenger_blutgruppen(s["blutgruppe"])
@@ -331,19 +335,28 @@ def allocate():
             placeholders = ",".join(["%s"] * len(empfaenger_bgs))
 
             match = db_read(f"""
-                SELECT ko.krankesorganid, ko.dringlichkeit, ko.created_at AS eingabedatum,
-                       p.patientenid, p.vorname, p.nachname, p.spital, p.blutgruppe
+                SELECT ko.krankesorganid,
+                    ko.dringlichkeit,
+                    ko.created_at AS empfaenger_eingabedatum,
+                    p.patientenid,
+                    p.vorname,
+                    p.nachname,
+                    p.spital,
+                    p.blutgruppe,
+                    p.telefonnummer AS patient_telefon,
+                    a.telefonnummer AS arzt_telefon
                 FROM krankesorgan ko
                 JOIN patienten p ON p.patientenid = ko.patientenid
+                JOIN aerzte a ON a.arztid = p.arztid
                 LEFT JOIN zuteilung z ON z.krankesorganid = ko.krankesorganid
-                                     AND z.status IN ('proposed','confirmed')
+                                    AND z.status IN ('proposed','confirmed')
                 WHERE z.zuteilungid IS NULL
-                  AND ko.organ = %s
-                  AND p.blutgruppe IN ({placeholders})
-                  AND p.alterskategorie = %s
+                AND ko.organ = %s
+                AND p.blutgruppe IN ({placeholders})
+                AND p.alterskategorie = %s
                 ORDER BY
-                  LEAST(10, ko.dringlichkeit + FLOOR(TIMESTAMPDIFF(DAY, ko.created_at, NOW()) / 30)) DESC,
-                  ko.created_at ASC
+                LEAST(10, ko.dringlichkeit + FLOOR(TIMESTAMPDIFF(DAY, ko.created_at, NOW()) / 30)) DESC,
+                ko.created_at ASC
                 LIMIT 1
             """, tuple([s["organ"]] + empfaenger_bgs + [s["alterskategorie"]]))
 
@@ -354,7 +367,8 @@ def allocate():
                 )
                 suggestions.append({"spender": s, "match": match[0]})
 
-    return render_template("allocate.html", suggestions=suggestions, did_run=did_run)
+    auto_run = (request.args.get("run") == "1")
+return render_template("allocate.html", suggestions=suggestions, did_run=did_run, auto_run=auto_run)
 
 
 @app.route("/login", methods=["GET", "POST"])

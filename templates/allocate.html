@@ -3,29 +3,36 @@
 <div class="container mt-4">
   <h2>Organe zuteilen</h2>
 
-  <form method="POST" class="mb-3">
-    <button class="btn btn-primary" type="submit">Zuteilung berechnen</button>
-    <a class="btn btn-secondary" href="{{ url_for('doctor_dashboard') }}">Zurück</a>
-  </form>
+  {% if not auto_run %}
+    <form method="POST" class="mb-3">
+      <button class="btn btn-primary" type="submit">Zuteilung berechnen</button>
+      <a class="btn btn-secondary" href="{{ url_for('doctor_dashboard') }}">Zurück</a>
+    </form>
+  {% endif %}
 
   {% if did_run %}
     {% if suggestions and suggestions|length > 0 %}
       <div class="alert alert-success">
         <strong>Match gefunden!</strong>
-        
       </div>
 
       <table class="table table-bordered table-striped">
         <thead>
           <tr>
-            <th>Spender-Organ</th>
+            <th>Organ</th>
             <th>Blutgruppe (Spender)</th>
             <th>Alterskategorie</th>
+
             <th>Empfänger</th>
             <th>Spital</th>
             <th>Blutgruppe (Empfänger)</th>
+
             <th>Dringlichkeit</th>
-            <th>Eingabedatum</th>
+
+            <th>Eingabedatum (Spender)</th>
+            <th>Eingabedatum (Empfänger)</th>
+
+            <th>Anrufen</th>
           </tr>
         </thead>
         <tbody>
@@ -34,11 +41,29 @@
             <td>{{ s.spender.organ }}</td>
             <td>{{ s.spender.blutgruppe }}</td>
             <td>{{ s.spender.alterskategorie }}</td>
+
             <td>{{ s.match.vorname }} {{ s.match.nachname }}</td>
             <td>{{ s.match.spital }}</td>
             <td>{{ s.match.blutgruppe }}</td>
+
             <td>{{ s.match.dringlichkeit }}</td>
-            <td>{{ s.match.eingabedatum }}</td>
+
+            <td>{{ s.spender.spender_eingabedatum }}</td>
+            <td>{{ s.match.empfaenger_eingabedatum }}</td>
+
+            <td>
+              {% if s.match.arzt_telefon %}
+                <a class="btn btn-default btn-xs" href="tel:{{ s.match.arzt_telefon }}">
+                  Arzt anrufen
+                </a>
+              {% endif %}
+
+              {% if s.match.patient_telefon %}
+                <a class="btn btn-default btn-xs" style="margin-left:6px;" href="tel:{{ s.match.patient_telefon }}">
+                  Patient anrufen
+                </a>
+              {% endif %}
+            </td>
           </tr>
           {% endfor %}
         </tbody>
@@ -47,12 +72,11 @@
     {% else %}
       <div class="alert alert-danger">
         <strong>Kein Match gefunden.</strong>
-        Für das erfasste Spenderorgan gibt es aktuell keinen passenden Empfänger.
+        Für die erfassten Spenderorgane gibt es aktuell keinen passenden Empfänger.
       </div>
     {% endif %}
   {% else %}
-    <p class="text-muted">Klicke auf „Zuteilung berechnen“, um Vorschläge zu sehen.</p>
+    <p class="text-muted">Keine Berechnung gestartet.</p>
   {% endif %}
-
 </div>
 {% endblock %}
