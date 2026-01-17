@@ -143,12 +143,13 @@ def offizielle_warteliste():
 @role_required("doctor", "admin")
 def doctor_dashboard():
     waiting = db_read("""
-        SELECT p.patientenid,p.vorname, p.nachname, p.arztid, p.spital, p.telefonnummer, p.gewicht, p.groesse,p.alter_jahre, p.alterskategorie, p.blutgruppe, ko.krankesorganid,  ko.organ, ko.dringlichkeit, ko.created_at AS eingabedatum
+        SELECT p.patientenid,p.vorname, p.nachname, p.arztid, p.spital, p.telefonnummer, p.gewicht, p.groesse,p.alter_jahre, p.alterskategorie, p.blutgruppe, ko.krankesorganid,  ko.organ,
+         ko.dringlichkeit, LEAST (10, ko.dringlichkeit + FLOOR(TIMESTAMPDIFF(DAY, ko.created_at, NOW())/30)) AS effektive_dringlichkeit, ko.created_at AS eingabedatum
         FROM krankesorgan ko
         JOIN patienten p ON p.patientenid = ko.patientenid
         JOIN aerzte a ON a.arztid = p.arztid
         WHERE a.user_id = %s
-        ORDER BY ko.dringlichkeit DESC,  ko.created_at ASC
+        ORDER BY effektive_dringlichkeit DESC,  ko.created_at ASC
     """, (current_user.id,))
     return render_template("doctor_dashboard.html", waiting=waiting)
 
