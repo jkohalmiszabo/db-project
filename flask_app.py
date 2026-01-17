@@ -331,7 +331,7 @@ def allocate():
             placeholders = ",".join(["%s"] * len(empfaenger_bgs))
 
             match = db_read(f"""
-                SELECT ko.krankesorganid, ko.dringlichkeit, ko.created_at,
+                SELECT ko.krankesorganid, ko.dringlichkeit, ko.created_at AS eingabedatum,
                        p.patientenid, p.vorname, p.nachname, p.spital, p.blutgruppe
                 FROM krankesorgan ko
                 JOIN patienten p ON p.patientenid = ko.patientenid
