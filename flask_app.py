@@ -92,16 +92,16 @@ def run_allocation_24h():
             so.organ,
             v.blutgruppe,
             v.alterskategorie,
-            v.spital AS spender_spital,
             v.telefonnummerangehorige AS spender_telefon,
             v.created_at AS spender_eingabedatum
         FROM spenderorgane so
         JOIN verstorbener v ON v.verstorbenenid = so.verstorbenenid
         LEFT JOIN zuteilung z ON z.spenderorganid = so.spenderorganid
-                             AND z.status IN ('proposed','confirmed')
+                            AND z.status IN ('proposed','confirmed')
         WHERE z.zuteilungid IS NULL
-          AND v.created_at >= (NOW() - INTERVAL 1 DAY)
+        AND v.created_at >= (NOW() - INTERVAL 1 DAY)
     """)
+
 
     for s in spender:
         empfaenger_bgs = kompatible_empfaenger_blutgruppen(s["blutgruppe"])
@@ -352,9 +352,19 @@ def new_patient():
     """, (pid, organ, dringlichkeit))
 
     # NEU: nach neuem Patienten automatisch Match mit letzten 24h Spendern
-    run_allocation_24h()
+    matches = run_allocation_24h()
+
+    if matches and len(matches) > 0:
+        # Sofort Match-Seite zeigen
+        return render_template(
+            "allocate.html",
+            suggestions=matches,
+            did_run=True,
+            auto_run=True
+        )
 
     return redirect(url_for("doctor_dashboard"))
+
 
 
 
