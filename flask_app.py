@@ -143,7 +143,7 @@ def offizielle_warteliste():
 @role_required("doctor", "admin")
 def doctor_dashboard():
     waiting = db_read("""
-        SELECT p.patientenid,p.vorname, p.nachname, p.arztid, p.spital, p.telefonnummer, p.gewicht, p.groesse,p.alter_jahre, p.alterskategorie, p.blutgruppe,  ko.organ, ko.dringlichkeit, ko.created_at AS eingabedatum
+        SELECT p.patientenid,p.vorname, p.nachname, p.arztid, p.spital, p.telefonnummer, p.gewicht, p.groesse,p.alter_jahre, p.alterskategorie, p.blutgruppe, ko.krankesorganid,  ko.organ, ko.dringlichkeit, ko.created_at AS eingabedatum
         FROM krankesorgan ko
         JOIN patienten p ON p.patientenid = ko.patientenid
         JOIN aerzte a ON a.arztid = p.arztid
@@ -151,6 +151,68 @@ def doctor_dashboard():
         ORDER BY ko.dringlichkeit DESC,  ko.created_at ASC
     """, (current_user.id,))
     return render_template("doctor_dashboard.html", waiting=waiting)
+
+
+@app.route("/doctor/warteliste/edit/<int:krankesorganid>", methods=["GET", "POST"])
+@login_required
+@role_required("doctor", "admin")
+def edit_waitlist_entry(krankesorganid):
+    # Datensatz holen + Besitzer prüfen (nur eigener Eintrag, ausser admin)
+    row = db_read("""
+        SELECT
+          ko.krankesorganid, ko.organ, ko.dringlichkeit, ko.created_at,
+          p.patientenid, p.vorname, p.nachname, p.spital, p.telefonnummer,
+          p.gewicht, p.groesse, p.blutgruppe, p.alter_jahre, p.alterskategorie,
+          a.user_id AS owner_user_id
+        FROM krankesorgan ko
+        JOIN patienten p ON p.patientenid = ko.patientenid
+        JOIN aerzte a ON a.arztid = p.arztid
+        WHERE ko.krankesorganid = %s
+        LIMIT 1
+    """, (krankesorganid,), single=True)
+
+    if not row:
+        abort(404)
+
+    # doctor darf nur eigene Einträge editieren, admin alles
+    if current_user.role != "admin" and row["owner_user_id"] != current_user.id:
+        abort(403)
+
+    if request.method == "GET":
+        return render_template("patient_edit.html", row=row)
+
+    # POST: Werte speichern
+    db_write("""
+        UPDATE patienten
+        SET vorname=%s, nachname=%s, spital=%s, telefonnummer=%s,
+            gewicht=%s, groesse=%s, blutgruppe=%s, alter_jahre=%s, alterskategorie=%s
+        WHERE patientenid=%s
+    """, (
+        request.form["vorname"],
+        request.form["nachname"],
+        request.form["spital"],
+        request.form["telefonnummer"],
+        request.form["gewicht"],
+        request.form["groesse"],
+        request.form["blutgruppe"],
+        int(request.form["alter_jahre"]),
+        calc_alterskategorie(int(request.form["alter_jahre"])),
+        row["patientenid"]
+    ))
+
+    db_write("""
+        UPDATE krankesorgan
+        SET organ=%s, dringlichkeit=%s
+        WHERE krankesorganid=%s
+    """, (
+        request.form["organ"],
+        int(request.form["dringlichkeit"]),
+        krankesorganid
+    ))
+
+    # zurück zur Warteliste
+    return redirect(url_for("doctor_dashboard"))
+
 
 
 @app.route("/doctor/patient/new", methods=["GET", "POST"])

@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>Eintrag bearbeiten</h2>
+
+<form method="post" class="panel panel-default" style="padding:20px;">
+
+  <div class="row">
+    <div class="col-sm-6 form-group">
+      <label>Vorname</label>
+      <input class="form-control" name="vorname" value="{{ row.vorname }}" required>
+    </div>
+    <div class="col-sm-6 form-group">
+      <label>Name</label>
+      <input class="form-control" name="nachname" value="{{ row.nachname }}" required>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-sm-6 form-group">
+      <label>Spital</label>
+      <input class="form-control" name="spital" value="{{ row.spital }}" required>
+    </div>
+    <div class="col-sm-6 form-group">
+      <label>Telefonnummer</label>
+      <input class="form-control" name="telefonnummer" value="{{ row.telefonnummer }}" required>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-sm-3 form-group">
+      <label>Gewicht</label>
+      <input class="form-control" name="gewicht" value="{{ row.gewicht }}" required>
+    </div>
+    <div class="col-sm-3 form-group">
+      <label>Grösse</label>
+      <input class="form-control" name="groesse" value="{{ row.groesse }}" required>
+    </div>
+    <div class="col-sm-3 form-group">
+      <label>Blutgruppe</label>
+      <input class="form-control" name="blutgruppe" value="{{ row.blutgruppe }}" required>
+    </div>
+    <div class="col-sm-3 form-group">
+      <label>Alter (Jahre)</label>
+      <input class="form-control" name="alter_jahre" value="{{ row.alter_jahre }}" required>
+    </div>
+  </div>
+
+  <hr>
+
+  <div class="row">
+    <div class="col-sm-6 form-group">
+      <label>Organ</label>
+      <input class="form-control" name="organ" value="{{ row.organ }}" required>
+    </div>
+    <div class="col-sm-6 form-group">
+      <label>Dringlichkeit (1-10)</label>
+      <input class="form-control" name="dringlichkeit" value="{{ row.dringlichkeit }}" required>
+    </div>
+  </div>
+
+  <button type="submit" class="btn btn-default">Speichern</button>
+  <a class="btn btn-default" href="{{ url_for('doctor_dashboard') }}">Abbrechen</a>
+
+</form>
+
+{% endblock %}
