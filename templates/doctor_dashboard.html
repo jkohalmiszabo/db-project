@@ -22,7 +22,7 @@
           <th>Name</th>
           <th>Arzt-ID</th>
           <th>Spital</th>
-          <th>Telefonnnummer</th>
+          <th>Telefonnummer</th>
           <th>Gewicht (kg)</th>
           <th>Körpergrösse (cm)</th>
           <th>Alter</th>
@@ -40,6 +40,12 @@
       <tbody>
         {% for row in waiting %}
         <tr>
+          <td>
+            <a class="btn btn-default btn-xs"
+              href="{{ url_for('edit_waitlist_entry', krankesorganid=row.krankesorganid) }}">
+              Bearbeiten
+            </a>
+          </td>
           <td>{{ row.patientenid }}</td>
           <td>{{ row.vorname }}</td>
           <td>{{ row.nachname }}</td>
@@ -51,17 +57,10 @@
           <td>{{ row.alter_jahre }}</td>
           <td>{{ row.alterskategorie }}</td>
           <td>{{ row.blutgruppe }}</td>
-          <td>{{ row.krankesorganid</row> }}</td>
+          <td>{{ row.krankesorganid }}</td>
           <td>{{ row.organ }}</td>
           <td>{{ row.dringlichkeit }}</td>
           <td>{{ row.eingabedatum }}</td>
-
-          <td>
-            <a class="btn btn-default btn-xs"
-              href="{{ url_for('edit_waitlist_entry', krankesorganid=row.krankesorganid) }}">
-              Bearbeiten
-            </a>
-          </td>
 
         </tr>
         {% endfor %}
