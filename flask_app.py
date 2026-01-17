@@ -143,7 +143,7 @@ def offizielle_warteliste():
 @role_required("doctor", "admin")
 def doctor_dashboard():
     waiting = db_read("""
-        SELECT p.patientenid,p.vorname, p.nachname, p.arztid, p.spital, p.telefonnummer, p.gewicht, p.groesse,p.alter_jahre, p.alterskategorie, p.blutgruppe, ko.krankesorganid, ko.organ, ko.dringlichkeit, ko.created_at AS eingabedatum
+        SELECT p.patientenid,p.vorname, p.nachname, p.arztid, p.spital, p.telefonnummer, p.gewicht, p.groesse,p.alter_jahre, p.alterskategorie, p.blutgruppe,  ko.organ, ko.dringlichkeit, ko.created_at AS eingabedatum
         FROM krankesorgan ko
         JOIN patienten p ON p.patientenid = ko.patientenid
         JOIN aerzte a ON a.arztid = p.arztid
