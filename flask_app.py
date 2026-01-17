@@ -367,8 +367,8 @@ def allocate():
                 )
                 suggestions.append({"spender": s, "match": match[0]})
 
-auto_run = (request.args.get("run") == "1")
-return render_template("allocate.html", suggestions=suggestions, did_run=did_run, auto_run=auto_run)
+            auto_run = (request.args.get("run") == "1")
+            return render_template("allocate.html", suggestions=suggestions, did_run=did_run, auto_run=auto_run)
 
 
 @app.route("/login", methods=["GET", "POST"])
