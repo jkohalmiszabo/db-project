@@ -351,11 +351,10 @@ def new_patient():
         VALUES (%s,%s,%s)
     """, (pid, organ, dringlichkeit))
 
-    # NEU: nach neuem Patienten automatisch matchen (letzte 24h Verstorbene)
+    # NEU: nach neuem Patienten automatisch Match mit letzten 24h Spendern
     run_allocation_24h()
 
     return redirect(url_for("doctor_dashboard"))
-
 
 
 
