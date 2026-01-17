@@ -9,70 +9,50 @@
   </form>
 
   {% if did_run %}
-    <h4>Vorschläge</h4>
-    {% if suggestions %}
-      {% for s in suggestions %}
-        <div class="card mb-3 shadow-sm">
-          <div class="card-header">
-            <strong>Spenderorgan:</strong> {{ s.spender.organ }} (Blutgruppe {{ s.spender.blutgruppe }})
-          </div>
-          <div class="card-body">
-            <p class="mb-1"><strong>Empfänger:</strong> {{ s.match.vorname }} {{ s.match.nachname }}</p>
-            <p class="mb-1"><strong>Spital:</strong> {{ s.match.spital }}</p>
-            <p class="mb-0"><strong>Dringlichkeit:</strong> <span class="badge bg-danger">{{ s.match.dringlichkeit }}</span></p>
-          </div>
-        </div>
-      {% endfor %}
+    {% if suggestions and suggestions|length > 0 %}
+      <div class="alert alert-success">
+        <strong>Match gefunden!</strong>
+        Es wurden {{ suggestions|length }} Zuteilung(en) vorgeschlagen.
+      </div>
+
+      <table class="table table-bordered table-striped">
+        <thead>
+          <tr>
+            <th>Spender-Organ</th>
+            <th>Blutgruppe (Spender)</th>
+            <th>Alterskategorie</th>
+            <th>Empfänger</th>
+            <th>Spital</th>
+            <th>Blutgruppe (Empfänger)</th>
+            <th>Dringlichkeit</th>
+            <th>Eingabedatum</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in suggestions %}
+          <tr>
+            <td>{{ s.spender.organ }}</td>
+            <td>{{ s.spender.blutgruppe }}</td>
+            <td>{{ s.spender.alterskategorie }}</td>
+            <td>{{ s.match.vorname }} {{ s.match.nachname }}</td>
+            <td>{{ s.match.spital }}</td>
+            <td>{{ s.match.blutgruppe }}</td>
+            <td>{{ s.match.dringlichkeit }}</td>
+            <td>{{ s.match.eingabedatum }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
     {% else %}
-      <p class="text-muted">Keine passenden Matches gefunden.</p>
+      <div class="alert alert-danger">
+        <strong>Kein Match gefunden.</strong>
+        Für die erfassten Spenderorgane gibt es aktuell keinen passenden Empfänger.
+      </div>
     {% endif %}
   {% else %}
     <p class="text-muted">Klicke auf „Zuteilung berechnen“, um Vorschläge zu sehen.</p>
   {% endif %}
+
 </div>
 {% endblock %}
-
-{% if did_run %}
-  {% if suggestions and suggestions|length > 0 %}
-    <div class="alert alert-success">
-      <strong>Match gefunden!</strong>
-      Es wurden {{ suggestions|length }} Zuteilung(en) vorgeschlagen.
-    </div>
-  {% else %}
-    <div class="alert alert-danger">
-      <strong>Kein Match gefunden.</strong>
-      Für die erfassten Spenderorgane gibt es aktuell keinen passenden Empfänger.
-    </div>
-  {% endif %}
-{% endif %}
-{% if suggestions and suggestions|length > 0 %}
-  <table class="table table-bordered table-striped">
-    <thead>
-      <tr>
-        <th>Spender-Organ</th>
-        <th>Blutgruppe (Spender)</th>
-        <th>Alterskategorie</th>
-        <th>Empfänger</th>
-        <th>Spital</th>
-        <th>Blutgruppe (Empfänger)</th>
-        <th>Dringlichkeit</th>
-        <th>Eingabedatum</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for s in suggestions %}
-      <tr>
-        <td>{{ s.spender.organ }}</td>
-        <td>{{ s.spender.blutgruppe }}</td>
-        <td>{{ s.spender.alterskategorie }}</td>
-        <td>{{ s.match.vorname }} {{ s.match.nachname }}</td>
-        <td>{{ s.match.spital }}</td>
-        <td>{{ s.match.blutgruppe }}</td>
-        <td>{{ s.match.dringlichkeit }}</td>
-        <td>{{ s.match.eingabedatum }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-{% endif %}
-
