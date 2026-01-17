@@ -68,7 +68,7 @@
           <td>{{ row.blutgruppe }}</td>
           <td>{{ row.krankesorganid }}</td>
           <td>{{ row.organ }}</td>
-          <<td>
+          <td>
             {{ row.dringlichkeit }}
             {% set bonus = row.effektive_dringlichkeit - row.dringlichkeit %}
             {% if bonus > 0 %}
