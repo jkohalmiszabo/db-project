@@ -81,6 +81,61 @@ def role_required(*roles):
             return fn(*args, **kwargs)
         return wrapper
     return decorator
+
+def run_allocation_24h():
+    suggestions = []
+
+    spender = db_read("""
+        SELECT
+            so.spenderorganid,
+            so.organ,
+            v.blutgruppe,
+            v.alterskategorie
+        FROM spenderorgane so
+        JOIN verstorbener v ON v.verstorbenenid = so.verstorbenenid
+        LEFT JOIN zuteilung z ON z.spenderorganid = so.spenderorganid
+                             AND z.status IN ('proposed','confirmed')
+        WHERE z.zuteilungid IS NULL
+          AND v.created_at >= (NOW() - INTERVAL 1 DAY)
+    """)
+
+    for s in spender:
+        empfaenger_bgs = kompatible_empfaenger_blutgruppen(s["blutgruppe"])
+        if not empfaenger_bgs:
+            continue
+
+        placeholders = ",".join(["%s"] * len(empfaenger_bgs))
+
+        match = db_read(f"""
+            SELECT
+                ko.krankesorganid
+            FROM krankesorgan ko
+            JOIN patienten p ON p.patientenid = ko.patientenid
+            LEFT JOIN zuteilung z ON z.krankesorganid = ko.krankesorganid
+                                 AND z.status IN ('proposed','confirmed')
+            WHERE z.zuteilungid IS NULL
+              AND ko.organ = %s
+              AND p.blutgruppe IN ({placeholders})
+              AND p.alterskategorie = %s
+            ORDER BY
+              LEAST(10, ko.dringlichkeit + FLOOR(TIMESTAMPDIFF(DAY, ko.created_at, NOW()) / 30)) DESC,
+              ko.created_at ASC
+            LIMIT 1
+        """, tuple([s["organ"]] + empfaenger_bgs + [s["alterskategorie"]]))
+
+        if match:
+            db_write("""
+                INSERT INTO zuteilung (spenderorganid, krankesorganid, status)
+                VALUES (%s, %s, 'proposed')
+            """, (s["spenderorganid"], match[0]["krankesorganid"]))
+
+            suggestions.append({
+                "spenderorganid": s["spenderorganid"],
+                "krankesorganid": match[0]["krankesorganid"]
+            })
+
+    return suggestions
+
  
 
 
@@ -262,20 +317,24 @@ def new_patient():
     alterskategorie = calc_alterskategorie(alter_jahre)
 
     db_write("""
-        INSERT INTO patienten (arztid, telefonnummer, spital, vorname, nachname, gewicht, groesse, blutgruppe, alterskategorie, alter_jahre)
-        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-    """, (arztid, telefon, spital, vorname, nachname, gewicht, groesse, blutgruppe, alterskategorie, alter_jahre))
+            INSERT INTO patienten (arztid, telefonnummer, spital, vorname, nachname, gewicht, groesse, blutgruppe, alterskategorie, alter_jahre)
+            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+        """, (arztid, telefon, spital, vorname, nachname, gewicht, groesse, blutgruppe, alterskategorie, alter_jahre))
 
-    pid = db_read("SELECT patientenid FROM patienten WHERE telefonnummer=%s", (telefon,))[0]["patientenid"]
+        pid = db_read("SELECT patientenid FROM patienten WHERE telefonnummer=%s", (telefon,))[0]["patientenid"]
 
-    organ = request.form["organ"]
-    dringlichkeit = request.form["dringlichkeit"]
-    db_write("""
+        organ = request.form["organ"]
+        dringlichkeit = request.form["dringlichkeit"]
+        db_write("""
         INSERT INTO krankesorgan (patientenid, organ, dringlichkeit)
         VALUES (%s,%s,%s)
     """, (pid, organ, dringlichkeit))
 
+    # NEU: nach neuem Patienten automatisch matchen (letzte 24h Verstorbene)
+    run_allocation_24h()
+
     return redirect(url_for("doctor_dashboard"))
+
 
 
 @app.route("/doctor/deceased/new", methods=["GET", "POST"])
@@ -322,68 +381,10 @@ def allocate():
 
     if run_now:
         did_run = True
-
-        # Nur Spenderorgane, die noch nicht proposed/confirmed sind
-        spender = db_read("""
-            SELECT
-                so.spenderorganid,
-                so.organ,
-                v.blutgruppe,
-                v.alterskategorie,
-                v.spital AS spender_spital,
-                v.telefonnummerangehorige AS spender_telefon,
-                NOW() AS spender_eingabedatum
-            FROM spenderorgane so
-            JOIN verstorbener v ON v.verstorbenenid = so.verstorbenenid
-            LEFT JOIN zuteilung z ON z.spenderorganid = so.spenderorganid
-                                 AND z.status IN ('proposed','confirmed')
-            WHERE z.zuteilungid IS NULL
-                AND v.created_at >= (NOW() - INTERVAL 1 DAY)
-        """)
-
-        for s in spender:
-            empfaenger_bgs = kompatible_empfaenger_blutgruppen(s["blutgruppe"])
-            if not empfaenger_bgs:
-                continue
-
-            placeholders = ",".join(["%s"] * len(empfaenger_bgs))
-
-            # Bestes Match aus OFFIZIELLER Warteliste (nur open, gleicher Organ, kompatible BG, gleiche Alterskategorie)
-            match = db_read(f"""
-                SELECT
-                    ko.krankesorganid,
-                    ko.dringlichkeit,
-                    ko.created_at AS empfaenger_eingabedatum,
-                    p.patientenid,
-                    p.vorname,
-                    p.nachname,
-                    p.spital,
-                    p.blutgruppe,
-                    p.telefonnummer AS patient_telefon,
-                    a.telefonnummer AS arzt_telefon
-                FROM krankesorgan ko
-                JOIN patienten p ON p.patientenid = ko.patientenid
-                JOIN aerzte a ON a.arztid = p.arztid
-                LEFT JOIN zuteilung z ON z.krankesorganid = ko.krankesorganid
-                                     AND z.status IN ('proposed','confirmed')
-                WHERE z.zuteilungid IS NULL
-                  AND ko.organ = %s
-                  AND p.blutgruppe IN ({placeholders})
-                  AND p.alterskategorie = %s
-                ORDER BY
-                  LEAST(10, ko.dringlichkeit + FLOOR(TIMESTAMPDIFF(DAY, ko.created_at, NOW()) / 30)) DESC,
-                  ko.created_at ASC
-                LIMIT 1
-            """, tuple([s["organ"]] + empfaenger_bgs + [s["alterskategorie"]]))
-
-            if match:
-                # Vorschlag speichern
-                db_write("""
-                    INSERT INTO zuteilung (spenderorganid, krankesorganid, status)
-                    VALUES (%s, %s, 'proposed')
-                """, (s["spenderorganid"], match[0]["krankesorganid"]))
-
-                suggestions.append({"spender": s, "match": match[0]})
+        suggestions = run_allocation_24h()
+        
+        
+            
 
     auto_run = (request.args.get("run") == "1")
     return render_template("allocate.html", suggestions=suggestions, did_run=did_run, auto_run=auto_run)
