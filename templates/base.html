@@ -125,7 +125,9 @@
             <img class="logo" src="{{ url_for('static', filename='logo.png') }}" alt="swisstransplant logo">
 
             <div class="brand-text">
-              <div class="brand-title">swisstransplant</div>
+              <a href="{{ url_for('index') }}" class="brand-title" style="text-decoration:none;">
+                swisstransplant
+              </a>
 
               {% if not current_user.is_authenticated %}
                 <div class="brand-subtitle">
