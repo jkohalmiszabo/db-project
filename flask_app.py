@@ -294,7 +294,8 @@ def new_deceased():
     for organ in organs:
         db_write("INSERT INTO spenderorgane (verstorbenenid, organ) VALUES (%s,%s)", (vid, organ))
 
-    return redirect(url_for("doctor_dashboard"))
+    rreturn redirect(url_for("allocate", run=1))
+
 
 
 @app.route("/doctor/allocate", methods=["GET", "POST"])
@@ -304,8 +305,12 @@ def allocate():
     suggestions = []
     did_run = False
 
-    if request.method == "POST":
+    run_now = (request.method == "POST") or (request.args.get("run") == "1")
+
+    if run_now:
         did_run = True
+        ...
+
 
         spender = db_read("""
             SELECT so.spenderorganid, so.organ,
