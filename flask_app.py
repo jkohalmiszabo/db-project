@@ -144,7 +144,7 @@ def offizielle_warteliste():
 def doctor_dashboard():
     waiting = db_read("""
         SELECT p.patientenid,p.vorname, p.nachname, p.arztid, p.spital, p.telefonnummer, p.gewicht, p.groesse,p.alter_jahre, p.alterskategorie, p.blutgruppe, ko.krankesorganid,  ko.organ,
-         ko.dringlichkeit, LEAST (10, ko.dringlichkeit + FLOOR(TIMESTAMPDIFF(DAY, ko.created_at, NOW())/30)) AS effektive_dringlichkeit, ko.created_at AS eingabedatum
+         ko.dringlichkeit, LEAST(10, ko.dringlichkeit + FLOOR(TIMESTAMPDIFF(DAY, ko.created_at, NOW())/30)) AS effektive_dringlichkeit, ko.created_at AS eingabedatum
         FROM krankesorgan ko
         JOIN patienten p ON p.patientenid = ko.patientenid
         JOIN aerzte a ON a.arztid = p.arztid
@@ -421,7 +421,7 @@ def logout():
 @login_required
 def index():
     if getattr(current_user, "role", None) in ("doctor", "admin"):
-        return redirect(url_for("doctor_dashboard"))
+        return redirect(url_for("doctor_home"))
 
     if request.method == "GET":
         todos = db_read("SELECT id, content, due FROM todos WHERE user_id=%s ORDER BY due", (current_user.id,))
