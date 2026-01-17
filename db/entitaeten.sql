@@ -14,7 +14,6 @@ CREATE TABLE aerzte (
     nachname VARCHAR(250) NOT NULL,
     spital VARCHAR(250),
     telefonnummer VARCHAR(15),
-    zertifikat_datei VARCHAR (255),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
@@ -46,15 +45,17 @@ CREATE TABLE krankesorgan (
 CREATE TABLE verstorbener (
     verstorbenenid INT AUTO_INCREMENT PRIMARY KEY,
     telefonnummerangehorige VARCHAR(15),
-    spital VARCHAR (250),
+    spital VARCHAR(250),
     vorname VARCHAR(250),
     nachname VARCHAR(250),
     gewicht FLOAT NOT NULL,
     groesse FLOAT NOT NULL,
     blutgruppe VARCHAR(4) NOT NULL,
-    alterskategorie INT NOT NULL
-    
+    alterskategorie INT NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+
 
 
 CREATE TABLE spenderorgane (

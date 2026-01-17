@@ -338,6 +338,7 @@ def allocate():
             LEFT JOIN zuteilung z ON z.spenderorganid = so.spenderorganid
                                  AND z.status IN ('proposed','confirmed')
             WHERE z.zuteilungid IS NULL
+                AND v.created_at >= (NOW() - INTERVAL 1 DAY)
         """)
 
         for s in spender:
